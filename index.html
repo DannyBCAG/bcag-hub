@@ -19,12 +19,12 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--white); color: var(--dark-grey); overflow-x: hidden; }
+        
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--lavender); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; z-index: 9999; }
         .splash-logo-container { width: 120px; height: 120px; background-color: var(--deep-blue); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 40px; }
         #splash-screen h1 { color: var(--deep-blue); font-size: 32px; margin-bottom: 15px; font-weight: 800; }
         #splash-screen p { color: var(--deep-blue); font-size: 18px; line-height: 1.5; max-width: 400px; margin-bottom: 40px; }
         
-        /* Fixed iPad Touch Responsive Button Class */
         .btn-enter { 
             background-color: var(--deep-blue); 
             color: var(--white); 
@@ -35,30 +35,36 @@
             border-radius: 30px; 
             cursor: pointer;
             display: inline-block;
-            touch-action: manipulation; /* Force iPad Safari to listen instantly */
+            touch-action: manipulation;
         }
         
         #lock-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; z-index: 9998; }
         .lock-container { width: 100%; max-width: 320px; text-align: center; }
         .lock-input { width: 100%; padding: 15px; font-size: 16px; border: 2px solid var(--lavender); border-radius: 12px; margin-bottom: 15px; text-align: center; }
         .btn-login { width: 100%; background-color: var(--deep-blue); color: var(--white); border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+        
         #app-content { display: none; padding-bottom: 80px; }
         .header-banner { text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--lavender); }
         .app-icon { width: 80px; height: 80px; background-color: var(--deep-blue); border-radius: 18px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 28px; }
         .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto; }
+        
         .menu-btn { background-color: var(--grey); border: none; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; touch-action: manipulation; }
         .btn-icon-img { width: 50px; height: 50px; background-color: var(--deep-blue); border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 20px; }
         .news-row { grid-column: span 2; }
+        
         .sub-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); z-index: 100; display: none; flex-direction: column; }
         .sub-header { padding: 20px; background-color: var(--deep-blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; }
         .btn-back { background: none; border: none; color: var(--white); font-size: 16px; font-weight: bold; cursor: pointer; }
         .sub-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
         #news-sneak-peek { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--deep-blue); color: var(--white); padding: 12px 20px; font-size: 14px; text-align: center; z-index: 90; }
         .sticky-footer-key { position: absolute; bottom: 0; left: 0; width: 100%; background-color: var(--grey); padding: 15px; display: flex; justify-content: space-around; font-size: 13px; font-weight: bold; z-index: 110; border-top: 1px solid var(--lavender); }
+        
         .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
         .dot.green { background-color: var(--green); }
         .dot.yellow { background-color: var(--yellow); }
         .dot.red { background-color: var(--red); }
+        
         .calendar-timeline-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background-color: var(--grey); border-radius: 12px; margin-bottom: 10px; }
         .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .gallery-item { background-color: var(--grey); border-radius: 12px; overflow: hidden; border: 1px solid var(--lavender); display: flex; flex-direction: column; }
@@ -67,22 +73,49 @@
         .btn-action { background-color: var(--deep-blue); color: var(--white); border: none; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; width: 100%; margin-top: 5px; cursor: pointer; touch-action: manipulation; }
         .materials-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--lavender); }
     </style>
+    
+    <script>
+        // Security gate definitions placed safely in head layout
+        function showLockScreen() {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.getElementById('lock-screen').style.display = 'flex';
+        }
+        function verifyPassword() {
+            const val = document.getElementById('password-input').value.trim();
+            if (val === 'BCAGBlackies') {
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+            } else if (val === 'DannyBCAG') {
+                document.getElementById('lock-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('admin-menu-btn').style.display = 'block';
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+        function openPage(id) { document.getElementById(id).style.display = 'flex'; }
+        function closePage(id) { document.getElementById(id).style.display = 'none'; }
+        function submitTemplateRequest() {
+            alert("Template successfully requested! Danny will see it in the Admin Dashboard and have it printed for Wednesday.");
+            const btn = document.getElementById('req-1');
+            if(btn) { btn.innerText = "✓ Requested"; btn.style.backgroundColor = "#2ECC71"; btn.disabled = true; }
+        }
+    </script>
 </head>
 <body>
 
-    <!-- Attached direct onclick and ontouchstart commands for instant iPad responsiveness -->
     <div id="splash-screen">
         <div class="splash-logo-container">🎨</div>
         <h1>BCAG</h1>
         <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
-        <button class="btn-enter" onclick="showLockScreen()" ontouchstart="showLockScreen()">Enter Portal</button>
+        <button class="btn-enter" onclick="showLockScreen()">Enter Portal</button>
     </div>
 
     <div id="lock-screen">
         <div class="lock-container">
             <h2>Please enter your access code:</h2>
             <input type="password" id="password-input" class="lock-input" placeholder="••••••••">
-            <button class="btn-login" onclick="verifyPassword()" ontouchstart="verifyPassword()">Log In</button>
+            <button class="btn-login" onclick="verifyPassword()">Log In</button>
             <div id="error-msg" style="color:var(--red); font-size:14px; margin-top:10px; display:none;">Incorrect password. Please try again!</div>
         </div>
     </div>
@@ -95,45 +128,25 @@
         </div>
 
         <div class="dashboard-grid">
-            <button class="menu-btn" onclick="openPage('gallery-page')" ontouchstart="openPage('gallery-page')">
+            <button class="menu-btn" onclick="openPage('gallery-page')">
                 <div class="btn-icon-img">🖼️</div>
                 <span>Gallery</span>
             </button>
-            <button class="menu-btn" onclick="openPage('members-gallery-page')" ontouchstart="openPage('members-gallery-page')">
+            <button class="menu-btn" onclick="openPage('members-gallery-page')">
                 <div class="btn-icon-img">📸</div>
                 <span>Members Gallery</span>
             </button>
-            <button class="menu-btn" onclick="openPage('calendar-page')" ontouchstart="openPage('calendar-page')">
+            <button class="menu-btn" onclick="openPage('calendar-page')">
                 <div class="btn-icon-img">📅</div>
                 <span>Calendar</span>
             </button>
-            <button class="menu-btn" onclick="openPage('materials-page')" ontouchstart="openPage('materials-page')">
+            <button class="menu-btn" onclick="openPage('materials-page')">
                 <div class="btn-icon-img">🎨</div>
                 <span>Art Materials</span>
             </button>
-            <button class="menu-btn news-row" onclick="openPage('news-archive-page')" ontouchstart="openPage('news-archive-page')">
+            <button class="menu-btn news-row" onclick="openPage('news-archive-page')">
                 <div class="btn-icon-img">📣</div>
                 <span>News Noticeboard</span>
             </button>
-            <button class="menu-btn news-row" id="admin-menu-btn" style="display:none; border: 2px dashed var(--red); background-color: #FFF5F5;" onclick="openPage('admin-dashboard-page')" ontouchstart="openPage('admin-dashboard-page')">
+            <button class="menu-btn news-row" id="admin-menu-btn" style="display:none; border: 2px dashed var(--red); background-color: #FFF5F5;" onclick="openPage('admin-dashboard-page')">
                 <div class="btn-icon-img" style="background-color: var(--red);">⚙️</div>
-                <span style="color: var(--red); font-weight: bold;">Secret Templates & Prints Panel</span>
-            </button>
-        </div>
-
-        <div id="news-sneak-peek">📢 Latest News: Welcome back everyone! Our sessions officially kick off on 6th January 2027!</div>
-    </div>
-
-    <!-- Subpages -->
-    <div id="gallery-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('gallery-page')" ontouchstart="closePage('gallery-page')">⬅ Back</button>
-            <h3>Art Catalog Gallery</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content">
-            <p style="margin-bottom:15px; font-size:14px; color:#666; text-align:center;">Members can choose and request one printable layout template at a time.</p>
-            <div class="gallery-grid">
-                <div class="gallery-item">
-                    <div class="gallery-img-box" style="background-image: url('https://unsplash.com');"></div>
-                    <div class="gallery-info">
