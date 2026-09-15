@@ -51,18 +51,15 @@
         .gallery-img-box { width: 100%; height: 140px; background-size: cover; background-position: center; background-color: #ddd; }
         .gallery-info { padding: 10px; text-align: center; }
         .btn-action { background-color: var(--deep-blue); color: var(--white); border: none; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; width: 100%; margin-top: 5px; cursor: pointer; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background-color: var(--white); padding: 20px; border-radius: 16px; width: 100%; max-width: 400px; position: relative; }
-        .form-select, .form-textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--lavender); border-radius: 8px; }
-        .admin-only { display: none; border: 2px dashed var(--red) !important; background-color: #FFF5F5 !important; }
         .materials-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--lavender); }
+        .admin-only { display: none; border: 2px dashed var(--red) !important; background-color: #FFF5F5 !important; }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <div class="splash-logo-container">🎨</div>
-        <h1>BCAG</h1>
+        <div class="splash-logo-container" id="splash-logo-art">🎨</div>
+        <h1 id="splash-title">BCAG</h1>
         <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
         <button class="btn-enter" onclick="showLockScreen()">Enter Portal</button>
     </div>
@@ -78,35 +75,35 @@
 
     <div id="app-content">
         <div class="header-banner">
-            <div class="app-icon">BCAG</div>
+            <div class="app-icon" id="dashboard-logo-art">BCAG</div>
             <h2>BCAG</h2>
             <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
         </div>
 
-        <div class="dashboard-grid" id="main-menu-grid">
+        <div class="dashboard-grid">
             <button class="menu-btn" onclick="openPage('gallery-page')">
-                <div class="btn-icon-img" id="icon-gallery">🖼️</div>
-                <span id="title-gallery">Gallery</span>
+                <div class="btn-icon-img" id="img-gallery">🖼️</div>
+                <span id="txt-gallery">Gallery</span>
             </button>
             <button class="menu-btn" onclick="openPage('members-gallery-page')">
-                <div class="btn-icon-img" id="icon-members">📸</div>
-                <span id="title-members">Members Gallery</span>
+                <div class="btn-icon-img" id="img-members">📸</div>
+                <span id="txt-members">Members Gallery</span>
             </button>
             <button class="menu-btn" onclick="openPage('calendar-page')">
-                <div class="btn-icon-img" id="icon-calendar">📅</div>
-                <span id="title-calendar">Calendar</span>
+                <div class="btn-icon-img" id="img-calendar">📅</div>
+                <span id="txt-calendar">Calendar</span>
             </button>
             <button class="menu-btn" onclick="openPage('materials-page')">
-                <div class="btn-icon-img" id="icon-materials">🎨</div>
-                <span id="title-materials">Art Materials</span>
+                <div class="btn-icon-img" id="img-materials">🎨</div>
+                <span id="txt-materials">Art Materials</span>
             </button>
             <button class="menu-btn news-row" onclick="openPage('news-archive-page')">
-                <div class="btn-icon-img" id="icon-news">📣</div>
-                <span id="title-news">News Noticeboard</span>
+                <div class="btn-icon-img" id="img-news">📣</div>
+                <span id="txt-news">News Noticeboard</span>
             </button>
             <button class="menu-btn news-row admin-only" id="admin-menu-btn" onclick="openPage('admin-dashboard-page')">
                 <div class="btn-icon-img" style="background-color: var(--red);">⚙️</div>
-                <span style="color: var(--red);">Secret Templates & Prints Panel</span>
+                <span style="color: var(--red); font-weight: bold;">Secret Templates & Prints Panel</span>
             </button>
         </div>
 
@@ -121,9 +118,7 @@
         </div>
         <div class="sub-content">
             <p style="margin-bottom:15px; font-size:14px; color:#666; text-align:center;">Members can choose and request one printable layout template at a time.</p>
-            <div class="gallery-grid" id="portfolio-container">
-                <!-- Data will load here dynamically -->
-            </div>
+            <div class="gallery-grid" id="portfolio-container"></div>
         </div>
     </div>
 
@@ -133,4 +128,15 @@
             <h3>BCAG Class Dates</h3>
             <div style="width:40px"></div>
         </div>
-        <div class="sub-content" id="calendar-list">
+        <div class="sub-content" id="calendar-list"></div>
+        <div class="sticky-footer-key">
+            <div><span class="dot green"></span> Class On / Dan Present</div>
+            <div><span class="dot yellow"></span> Session On / Dan Away</div>
+            <div><span class="dot red"></span> Class Off</div>
+        </div>
+    </div>
+
+    <div id="members-gallery-page" class="sub-page">
+        <div class="sub-header">
+            <button class="btn-back" onclick="closePage('members-gallery-page')">⬅ Back</button>
+            <h3>Members Show & Tell</h3>
