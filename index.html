@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BCAG Portal</title>
-    <!-- Basic mobile app properties -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <style>
         :root {
             --lavender: #E6E6FA;
@@ -19,352 +17,120 @@
             --yellow: #F1C40F;
             --red: #E74C3C;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--white);
-            color: var(--dark-grey);
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* 1. SPLASH SCREEN STYLES */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--lavender);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            text-align: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-
-        .splash-logo-container {
-            width: 120px;
-            height: 120px;
-            background-color: var(--deep-blue);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-
-        .splash-logo-placeholder {
-            color: var(--white);
-            font-size: 40px;
-            font-weight: bold;
-        }
-
-        #splash-screen h1 {
-            color: var(--deep-blue);
-            font-size: 32px;
-            margin-bottom: 15px;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
-
-        #splash-screen p {
-            color: var(--deep-blue);
-            font-size: 18px;
-            line-height: 1.5;
-            max-width: 400px;
-            margin-bottom: 40px;
-        }
-
-        .btn-enter {
-            background-color: var(--deep-blue);
-            color: var(--white);
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(10,37,64,0.3);
-            transition: transform 0.2s ease;
-        }
-
-        .btn-enter:active {
-            transform: scale(0.95);
-        }
-
-        /* 2. LOCK SCREEN STYLES */
-        #lock-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--white);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            z-index: 9998;
-        }
-
-        .lock-container {
-            width: 100%;
-            max-width: 320px;
-            text-align: center;
-        }
-
-        .lock-container h2 {
-            color: var(--deep-blue);
-            margin-bottom: 25px;
-            font-size: 22px;
-        }
-
-        .lock-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid var(--lavender);
-            border-radius: 12px;
-            margin-bottom: 15px;
-            text-align: center;
-            outline: none;
-        }
-
-        .lock-input:focus {
-            border-color: var(--deep-blue);
-        }
-
-        .btn-login {
-            width: 100%;
-            background-color: var(--deep-blue);
-            color: var(--white);
-            border: none;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .error-message {
-            color: var(--red);
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        /* 3. MAIN DASHBOARD STYLES */
-        #app-content {
-            display: none;
-            padding-bottom: 80px; /* space for sneak peek or keys */
-        }
-
-        .header-banner {
-            text-align: center;
-            padding: 30px 20px;
-            background-color: var(--white);
-            border-bottom: 1px solid var(--lavender);
-        }
-
-        .app-icon {
-            width: 80px;
-            height: 80px;
-            background-color: var(--deep-blue);
-            border-radius: 18px;
-            margin: 0 auto 15px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-weight: bold;
-            font-size: 28px;
-        }
-
-        .header-banner h2 {
-            color: var(--deep-blue);
-            font-size: 26px;
-            margin-bottom: 8px;
-        }
-
-        .header-banner p {
-            font-size: 15px;
-            color: #555;
-            line-height: 1.4;
-            max-width: 450px;
-            margin: 0 auto;
-        }
-
-        /* GRID LAYOUTS */
-        .dashboard-grid {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .menu-btn {
-            background-color: var(--grey);
-            border: none;
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .menu-btn:active {
-            background-color: var(--lavender);
-        }
-
-        .btn-icon-img {
-            width: 50px;
-            height: 50px;
-            background-color: var(--deep-blue);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-size: 20px;
-        }
-
-        .menu-btn span {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--deep-blue);
-        }
-
-        /* Full width News Row */
-        .news-row {
-            grid-column: span 2;
-            padding: 15px 20px;
-        }
-
-        /* SUB PAGES CLOSING & HEADER */
-        .sub-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--white);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-        }
-
-        .sub-header {
-            padding: 20px;
-            background-color: var(--deep-blue);
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .btn-back {
-            background: none;
-            border: none;
-            color: var(--white);
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .sub-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        /* FIXED SNEAK PEEK NOTICES CONTAINER */
-        #news-sneak-peek {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--deep-blue);
-            color: var(--white);
-            padding: 12px 20px;
-            font-size: 14px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
-            z-index: 90;
-        }
-
-        /* STICKY CALENDAR KEY FOOTER */
-        .sticky-footer-key {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--grey);
-            border-top: 1px solid var(--lavender);
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            font-size: 13px;
-            font-weight: bold;
-            z-index: 110;
-        }
-
-        .key-item { display: flex; align-items: center; gap: 6px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block;}
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--white); color: var(--dark-grey); overflow-x: hidden; }
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--lavender); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; z-index: 9999; }
+        .splash-logo-container { width: 120px; height: 120px; background-color: var(--deep-blue); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 40px; }
+        #splash-screen h1 { color: var(--deep-blue); font-size: 32px; margin-bottom: 15px; font-weight: 800; }
+        #splash-screen p { color: var(--deep-blue); font-size: 18px; line-height: 1.5; max-width: 400px; margin-bottom: 40px; }
+        .btn-enter { background-color: var(--deep-blue); color: var(--white); border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; }
+        #lock-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; z-index: 9998; }
+        .lock-container { width: 100%; max-width: 320px; text-align: center; }
+        .lock-input { width: 100%; padding: 15px; font-size: 16px; border: 2px solid var(--lavender); border-radius: 12px; margin-bottom: 15px; text-align: center; }
+        .btn-login { width: 100%; background-color: var(--deep-blue); color: var(--white); border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+        #app-content { display: none; padding-bottom: 80px; }
+        .header-banner { text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--lavender); }
+        .app-icon { width: 80px; height: 80px; background-color: var(--deep-blue); border-radius: 18px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 28px; }
+        .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto; }
+        .menu-btn { background-color: var(--grey); border: none; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; }
+        .btn-icon-img { width: 50px; height: 50px; background-color: var(--deep-blue); border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 20px; }
+        .news-row { grid-column: span 2; }
+        .sub-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); z-index: 100; display: none; flex-direction: column; }
+        .sub-header { padding: 20px; background-color: var(--deep-blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; }
+        .btn-back { background: none; border: none; color: var(--white); font-size: 16px; font-weight: bold; cursor: pointer; }
+        .sub-content { flex: 1; overflow-y: auto; padding: 20px; }
+        #news-sneak-peek { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--deep-blue); color: var(--white); padding: 12px 20px; font-size: 14px; text-align: center; z-index: 90; }
+        .sticky-footer-key { position: absolute; bottom: 0; left: 0; width: 100%; background-color: var(--grey); padding: 15px; display: flex; justify-content: space-around; font-size: 13px; font-weight: bold; z-index: 110; border-top: 1px solid var(--lavender); }
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
         .dot.green { background-color: var(--green); }
         .dot.yellow { background-color: var(--yellow); }
         .dot.red { background-color: var(--red); }
+        .calendar-timeline-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background-color: var(--grey); border-radius: 12px; margin-bottom: 10px; }
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .gallery-item { background-color: var(--grey); border-radius: 12px; overflow: hidden; border: 1px solid var(--lavender); display: flex; flex-direction: column; }
+        .gallery-img-box { width: 100%; height: 140px; background-size: cover; background-position: center; background-color: #ddd; }
+        .gallery-info { padding: 10px; text-align: center; }
+        .btn-action { background-color: var(--deep-blue); color: var(--white); border: none; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; width: 100%; margin-top: 5px; cursor: pointer; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background-color: var(--white); padding: 20px; border-radius: 16px; width: 100%; max-width: 400px; position: relative; }
+        .form-select, .form-textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--lavender); border-radius: 8px; }
+        .admin-only { display: none; border: 2px dashed var(--red) !important; background-color: #FFF5F5 !important; }
+        .materials-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--lavender); }
+    </style>
+</head>
+<body>
 
-        /* INTERACTIVE ITEMS & LISTS */
-        .materials-list-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--lavender);
-            font-size: 16px;
-        }
+    <div id="splash-screen">
+        <div class="splash-logo-container">🎨</div>
+        <h1>BCAG</h1>
+        <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
+        <button class="btn-enter" onclick="showLockScreen()">Enter Portal</button>
+    </div>
 
-        .materials-list-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--deep-blue);
-        }
+    <div id="lock-screen">
+        <div class="lock-container">
+            <h2>Please enter your access code:</h2>
+            <input type="password" id="password-input" class="lock-input" placeholder="••••••••">
+            <button class="btn-login" onclick="verifyPassword()">Log In</button>
+            <div id="error-msg" style="color:var(--red); font-size:14px; margin-top:10px; display:none;">Incorrect password. Please try again!</div>
+        </div>
+    </div>
 
-        .calendar-timeline-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background-color: var(--grey);
-            border-radius: 12px;
-            margin-bottom: 10px;
-        }
+    <div id="app-content">
+        <div class="header-banner">
+            <div class="app-icon">BCAG</div>
+            <h2>BCAG</h2>
+            <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
+        </div>
 
-        /* SIMULATED DATA FOR GALLERY PROTOTYPE */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        <div class="dashboard-grid" id="main-menu-grid">
+            <button class="menu-btn" onclick="openPage('gallery-page')">
+                <div class="btn-icon-img" id="icon-gallery">🖼️</div>
+                <span id="title-gallery">Gallery</span>
+            </button>
+            <button class="menu-btn" onclick="openPage('members-gallery-page')">
+                <div class="btn-icon-img" id="icon-members">📸</div>
+                <span id="title-members">Members Gallery</span>
+            </button>
+            <button class="menu-btn" onclick="openPage('calendar-page')">
+                <div class="btn-icon-img" id="icon-calendar">📅</div>
+                <span id="title-calendar">Calendar</span>
+            </button>
+            <button class="menu-btn" onclick="openPage('materials-page')">
+                <div class="btn-icon-img" id="icon-materials">🎨</div>
+                <span id="title-materials">Art Materials</span>
+            </button>
+            <button class="menu-btn news-row" onclick="openPage('news-archive-page')">
+                <div class="btn-icon-img" id="icon-news">📣</div>
+                <span id="title-news">News Noticeboard</span>
+            </button>
+            <button class="menu-btn news-row admin-only" id="admin-menu-btn" onclick="openPage('admin-dashboard-page')">
+                <div class="btn-icon-img" style="background-color: var(--red);">⚙️</div>
+                <span style="color: var(--red);">Secret Templates & Prints Panel</span>
+            </button>
+        </div>
 
+        <div id="news-sneak-peek">📢 Loading noticeboard feed...</div>
+    </div>
+
+    <div id="gallery-page" class="sub-page">
+        <div class="sub-header">
+            <button class="btn-back" onclick="closePage('gallery-page')">⬅ Back</button>
+            <h3>Art Catalog Gallery</h3>
+            <div style="width:40px"></div>
+        </div>
+        <div class="sub-content">
+            <p style="margin-bottom:15px; font-size:14px; color:#666; text-align:center;">Members can choose and request one printable layout template at a time.</p>
+            <div class="gallery-grid" id="portfolio-container">
+                <!-- Data will load here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div id="calendar-page" class="sub-page" style="padding-bottom:60px;">
+        <div class="sub-header">
+            <button class="btn-back" onclick="closePage('calendar-page')">⬅ Back</button>
+            <h3>BCAG Class Dates</h3>
+            <div style="width:40px"></div>
+        </div>
+        <div class="sub-content" id="calendar-list">
