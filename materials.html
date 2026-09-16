@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BCAG Materials</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ed;
+    color: #333;
+}
+
+.header {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.materials {
+    padding: 15px;
+    max-width: 700px;
+    margin: auto;
+}
+
+.material {
+    background: white;
+    margin-bottom: 10px;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.10);
+    font-size: 18px;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    BCAG Materials
+</div>
+
+<div id="materials" class="materials">
+    <div class="loading">Loading materials...</div>
+</div>
+
+<script>
+
+const MATERIALS_URL = "https://script.google.com/macros/s/AKfycbzSpNjzeTOGuzHLX2HMflGQGWJzgpaL9blzbgxcM6HATNyY3x2X0c6ISu41N74Bx0dz/exec";
+
+fetch(MATERIALS_URL, {
+    mode: "cors"
+})
+.then(response => response.json())
+.then(data => {
+
+    const container = document.getElementById("materials");
+
+    container.innerHTML = "";
+
+    data.forEach(item => {
+
+        const card = document.createElement("div");
+
+        card.className = "material";
+        card.textContent = item;
+
+        container.appendChild(card);
+    });
+
+})
+.catch(error => {
+
+    document.getElementById("materials").innerHTML =
+        "<div class='loading'>Sorry, the materials could not be loaded.</div>";
+
+    console.error(error);
+
+});
+
+</script>
+
+</body>
+</html>
