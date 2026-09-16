@@ -210,12 +210,14 @@ async function login() {
         message.textContent =
             "Incorrect password. Please try again.";
 
-    } catch (error) {
+} catch (error) {
 
-        message.textContent =
-            "Something went wrong. Please try again.";
+    console.error(error);
 
-    }
+    message.textContent =
+        "Unable to check password. Please try again.";
+
+}
 }
 
 
