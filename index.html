@@ -8,9 +8,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link rel="apple-touch-icon"
-href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
-
 <style>
 * {
     box-sizing: border-box;
@@ -71,7 +68,6 @@ button {
     background: #333;
     color: white;
     font-size: 16px;
-    cursor: pointer;
 }
 
 .message {
@@ -100,10 +96,9 @@ button {
         id="password"
         type="password"
         placeholder="Password"
-        autocomplete="current-password"
     >
 
-    <button onclick="login()">Log In</button>
+    <button onclick="doLogin()">Log In</button>
 
     <div id="message" class="message"></div>
 
@@ -111,29 +106,18 @@ button {
 
 <script>
 
-const SUPABASE_URL =
-"https://rclomczdigsukcswnnju.supabase.co";
+const DB_URL = "https://rclomczdigsukcswnnju.supabase.co";
 
-const SUPABASE_KEY =
-"sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
+const DB_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
 
-const bcagDB = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
+const BCAG_DATABASE = window.supabase.createClient(
+    DB_URL,
+    DB_KEY
 );
 
-function checkExistingLogin() {
+function doLogin() {
 
-    const loggedIn = localStorage.getItem("bcagLoggedIn");
-
-    if (loggedIn === "true") {
-        window.location.href = "members.html";
-    }
-}
-
-async function login() {
-
-    const password =
+    const enteredPassword =
         document.getElementById("password").value.trim();
 
     const message =
@@ -141,60 +125,56 @@ async function login() {
 
     message.textContent = "";
 
-    if (!password) {
-        message.textContent =
-            "Please enter your password.";
+    if (!enteredPassword) {
+        message.textContent = "Please enter your password.";
         return;
     }
 
+    checkPassword(enteredPassword);
+}
+
+async function checkPassword(enteredPassword) {
+
+    const message =
+        document.getElementById("message");
+
     try {
 
-        const { data, error } =
-            await supabaseClient
+        const result =
+            await BCAG_DATABASE
             .from("app_settings")
             .select("members_password, admin_password")
             .eq("id", 1)
             .single();
 
-        if (error) {
-            console.error(error);
+        if (result.error) {
+
+            console.error(result.error);
+
             message.textContent =
-                error.message;
-            return;
-        }
-
-        if (password === data.admin_password) {
-
-            localStorage.setItem(
-                "bcagLoggedIn",
-                "true"
-            );
-
-            localStorage.setItem(
-                "bcagRole",
-                "admin"
-            );
-
-            window.location.href =
-                "members.html";
+                result.error.message;
 
             return;
         }
 
-        if (password === data.members_password) {
+        const settings = result.data;
 
-            localStorage.setItem(
-                "bcagLoggedIn",
-                "true"
-            );
+        if (enteredPassword === settings.admin_password) {
 
-            localStorage.setItem(
-                "bcagRole",
-                "member"
-            );
+            localStorage.setItem("bcagLoggedIn", "true");
+            localStorage.setItem("bcagRole", "admin");
 
-            window.location.href =
-                "members.html";
+            window.location.href = "members.html";
+
+            return;
+        }
+
+        if (enteredPassword === settings.members_password) {
+
+            localStorage.setItem("bcagLoggedIn", "true");
+            localStorage.setItem("bcagRole", "member");
+
+            window.location.href = "members.html";
 
             return;
         }
@@ -202,13 +182,12 @@ async function login() {
         message.textContent =
             "Incorrect password. Please try again.";
 
-    } catch (error) {
+    } catch (problem) {
 
-        console.error(error);
+        console.error(problem);
 
         message.textContent =
-            error.message ||
-            "Unable to check password.";
+            problem.message || "Unable to check password.";
 
     }
 }
@@ -218,12 +197,10 @@ document
 .addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
-        login();
+        doLogin();
     }
 
 });
-
-checkExistingLogin();
 
 </script>
 
