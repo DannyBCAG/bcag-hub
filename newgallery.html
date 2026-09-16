@@ -356,82 +356,48 @@ function escapeHtml(text) {
 function requestTemplate() {
 
     const title =
-        document
-            .getElementById("fullTitle")
-            .textContent;
-
+        document.getElementById("fullTitle").textContent;
 
     const name =
         prompt("Please enter your name:");
 
-
     if (!name || !name.trim()) {
-
         return;
-
     }
 
+    const memberName = name.trim();
 
-    const memberName =
-        name.trim();
+    const form =
+        document.createElement("form");
 
+    form.method = "GET";
+    form.action = API_URL;
+    form.target = "_blank";
 
-    /*
-     * Send the request using GET.
-     */
+    const titleInput =
+        document.createElement("input");
 
-    const requestURL =
-        API_URL +
-        "?title=" +
-        encodeURIComponent(title) +
-        "&memberName=" +
-        encodeURIComponent(memberName);
+    titleInput.type = "hidden";
+    titleInput.name = "title";
+    titleInput.value = title;
 
+    const nameInput =
+        document.createElement("input");
 
-    fetch(requestURL)
+    nameInput.type = "hidden";
+    nameInput.name = "memberName";
+    nameInput.value = memberName;
 
-        .then(response => response.json())
+    form.appendChild(titleInput);
+    form.appendChild(nameInput);
 
-        .then(result => {
+    document.body.appendChild(form);
 
-            console.log(
-                "Request response:",
-                result
-            );
+    form.submit();
 
-
-            if (result.success) {
-
-                alert(
-                    "Template request sent successfully."
-                );
-
-            } else {
-
-                alert(
-                    "Sorry, the request could not be sent."
-                );
-
-            }
-
-        })
-
-        .catch(error => {
-
-            console.error(error);
-
-            alert(
-                "Sorry, there was a problem sending the request."
-            );
-
-        });
-
+    document.body.removeChild(form);
 }
 
-
-
 </script>
-
 </body>
-
 </html>
