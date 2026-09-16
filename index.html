@@ -214,8 +214,8 @@ async function login() {
 
     console.error(error);
 
-    message.textContent =
-        "Unable to check password. Please try again.";
+message.textContent =
+    error.message || "Unable to check password.";
 
 }
 }
