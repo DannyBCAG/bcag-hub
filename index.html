@@ -1,593 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BCAG Portal</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        :root {
-            --lavender: #E6E6FA;
-            --deep-blue: #0A2540;
-            --white: #FFFFFF;
-            --grey: #F4F4F9;
-            --dark-grey: #333333;
-            --green: #2ECC71;
-            --yellow: #F1C40F;
-            --red: #E74C3C;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--white); color: var(--dark-grey); overflow-x: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--lavender); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; z-index: 9999; }
-        .splash-logo-container { width: 120px; height: 120px; background-color: var(--deep-blue); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 40px; overflow: hidden; }
-        .splash-logo-container img { width: 100%; height: 100%; object-fit: cover; }
-        #splash-screen h1 { color: var(--deep-blue); font-size: 32px; margin-bottom: 15px; font-weight: 800; }
-        #splash-screen p { color: var(--deep-blue); font-size: 18px; line-height: 1.5; max-width: 400px; margin-bottom: 40px; }
+<title>BCAG Art Group</title>
 
-        .btn-enter, .btn-admin-enter {
-            background-color: var(--deep-blue);
-            color: var(--white);
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            display: inline-block;
-            touch-action: manipulation;
-            margin-top: 10px;
-        }
-        .btn-admin-enter { background-color: transparent; color: var(--deep-blue); font-size: 13px; padding: 8px; text-decoration: underline; font-weight: normal; }
+<link rel="apple-touch-icon" href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
 
-        #lock-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; z-index: 9998; }
-        .lock-container { width: 100%; max-width: 320px; text-align: center; }
-        .lock-input, .form-input, textarea.form-input { width: 100%; padding: 15px; font-size: 16px; border: 2px solid var(--lavender); border-radius: 12px; margin-bottom: 15px; text-align: center; }
-        textarea.form-input { text-align: left; min-height: 80px; font-family: inherit; }
-        .btn-login { width: 100%; background-color: var(--deep-blue); color: var(--white); border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        #app-content { display: none; padding-bottom: 80px; }
-        .header-banner { text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--lavender); }
-        .app-icon { width: 80px; height: 80px; background-color: var(--deep-blue); border-radius: 18px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: bold; font-size: 28px; overflow: hidden; }
-        .app-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .dashboard-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    color: #333;
+    text-align: center;
+}
 
-        .menu-btn { background-color: var(--grey); border: none; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; touch-action: manipulation; }
-        .btn-icon-img { width: 50px; height: 50px; background-color: var(--deep-blue); border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 20px; overflow: hidden; }
-        .btn-icon-img img { width: 100%; height: 100%; object-fit: cover; }
-        .news-row { grid-column: span 2; }
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 15px 40px;
+}
 
-        .sub-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--white); z-index: 100; display: none; flex-direction: column; }
-        .sub-header { padding: 20px; background-color: var(--deep-blue); color: var(--white); display: flex; align-items: center; justify-content: space-between; }
-        .btn-back { background: none; border: none; color: var(--white); font-size: 16px; font-weight: bold; cursor: pointer; }
-        .sub-content { flex: 1; overflow-y: auto; padding: 20px; }
+.logo {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin: 5px auto 10px;
+    display: block;
+}
 
-        #news-sneak-peek { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--deep-blue); color: var(--white); padding: 12px 20px; font-size: 14px; text-align: center; z-index: 90; }
+h1 {
+    margin: 0 0 20px;
+    font-size: 28px;
+}
 
-        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .dot.green { background-color: var(--green); }
-        .dot.yellow { background-color: var(--yellow); }
-        .dot.red { background-color: var(--red); }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 700px;
+    margin: 0 auto 25px;
+}
 
-        .key-box { display: flex; flex-direction: column; gap: 8px; background: var(--grey); border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 14px; }
-        .calendar-timeline-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background-color: var(--grey); border-radius: 12px; margin-bottom: 10px; }
-        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .gallery-item { background-color: var(--grey); border-radius: 12px; overflow: hidden; border: 1px solid var(--lavender); display: flex; flex-direction: column; }
-        .gallery-img-box { width: 100%; height: 140px; background-size: cover; background-position: center; background-color: #ddd; }
-        .gallery-info { padding: 10px; text-align: center; }
-        .btn-action { background-color: var(--deep-blue); color: var(--white); border: none; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; width: 100%; margin-top: 5px; cursor: pointer; touch-action: manipulation; text-decoration: none; display: block; }
-        .materials-list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--lavender); }
-        .news-item { padding: 15px; background-color: var(--grey); border-radius: 12px; margin-bottom: 12px; }
-        .news-item h4 { margin-bottom: 5px; color: var(--deep-blue); }
-        .news-item .news-date { font-size: 12px; color: #888; margin-bottom: 8px; display: block; }
-        .empty-note { text-align: center; color: #888; padding: 30px 10px; font-size: 14px; }
+.card {
+    border: none;
+    background: white;
+    border-radius: 16px;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
 
-        .admin-request-item { background: var(--grey); border-radius: 12px; padding: 15px; margin-bottom: 10px; }
-        .admin-request-item .req-meta { font-size: 12px; color: #666; margin: 4px 0 10px 0; }
-        .admin-section { margin-bottom: 30px; }
-        .admin-section h4 { margin-bottom: 12px; color: var(--deep-blue); }
+.card img {
+    width: 100%;
+    max-width: 150px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+}
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-box { background: var(--white); border-radius: 16px; padding: 25px; width: 100%; max-width: 340px; }
-        .modal-box h3 { margin-bottom: 15px; color: var(--deep-blue); }
-        .btn-secondary { background: var(--grey); color: var(--dark-grey); }
-    </style>
+.card-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 8px 0 5px;
+}
+
+.login {
+    display: block;
+    max-width: 500px;
+    margin: 12px auto;
+    padding: 16px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: white;
+    background: #555;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+@media (min-width: 700px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div id="splash-screen">
-        <div class="splash-logo-container" id="splash-logo">BCAG</div>
-        <h1>BCAG</h1>
-        <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
-        <button class="btn-enter" onclick="showLockScreen()">Enter Portal</button>
+<div class="container">
+
+    <img
+        class="logo"
+        src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png"
+        alt="BCAG Art Group"
+    >
+
+    <h1>BCAG Art Group</h1>
+
+    <div class="grid">
+
+        <a class="card"
+           href="https://petuariapainters-create.github.io/BCAG-APP/index.html">
+            <img src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp"
+                 alt="Gallery">
+            <div class="card-title">Gallery</div>
+        </a>
+
+        <a class="card" href="#">
+            <img src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp"
+                 alt="Templates">
+            <div class="card-title">Templates</div>
+        </a>
+
+        <a class="card" href="#">
+            <img src="https://i.postimg.cc/W1GV4rjs/806687279-1454810143373747-573763567689125232-n.webp"
+                 alt="Members Gallery">
+            <div class="card-title">Members Gallery</div>
+        </a>
+
+        <a class="card" href="#">
+            <img src="https://i.postimg.cc/NLhhsGzr/806515828-1802584224076914-3045022485641698308-n.webp"
+                 alt="Calendar">
+            <div class="card-title">Calendar</div>
+        </a>
+
+        <a class="card" href="#">
+            <img src="https://i.postimg.cc/50T9zVr3/807284902-911269448405387-2529296765882370696-n.webp"
+                 alt="Art Materials">
+            <div class="card-title">Art Materials</div>
+        </a>
+
+        <a class="card" href="#">
+            <img src="https://i.postimg.cc/VNNzHvQs/news-megaphone-exact-style.png"
+                 alt="News">
+            <div class="card-title">News</div>
+        </a>
+
     </div>
 
-    <div id="lock-screen">
-        <div class="lock-container">
-            <h2>Please enter your access code:</h2>
-            <input type="password" id="password-input" class="lock-input" placeholder="••••••••">
-            <button class="btn-login" onclick="verifyPassword()">Log In</button>
-            <div id="error-msg" style="color:var(--red); font-size:14px; margin-top:10px; display:none;">Incorrect password. Please try again!</div>
-            <div id="login-loading" style="font-size:13px; color:#888; margin-top:10px; display:none;">Checking...</div>
-        </div>
-    </div>
+    <a class="login" href="#">Members Login</a>
 
-    <div id="app-content">
-        <div class="header-banner">
-            <div class="app-icon" id="header-logo">BCAG</div>
-            <h2>BCAG</h2>
-            <p>A friendly and welcoming art group sitting every Wednesday 1-4pm at Blackburn Leisure</p>
-        </div>
+    <a class="login" href="#">Admin Login</a>
 
-        <div class="dashboard-grid">
-            <button class="menu-btn" onclick="openPage('gallery-page')">
-                <div class="btn-icon-img" data-icon="Gallery">🖼️</div>
-                <span>Gallery</span>
-            </button>
-            <button class="menu-btn" onclick="openPage('members-gallery-page')">
-                <div class="btn-icon-img" data-icon="Members Gallery">📸</div>
-                <span>Members Gallery</span>
-            </button>
-            <button class="menu-btn" onclick="openPage('calendar-page')">
-                <div class="btn-icon-img" data-icon="Calendar">📅</div>
-                <span>Calendar</span>
-            </button>
-            <button class="menu-btn" onclick="openPage('materials-page')">
-                <div class="btn-icon-img" data-icon="Art Materials">🎨</div>
-                <span>Art Materials</span>
-            </button>
-            <button class="menu-btn news-row" onclick="openPage('news-archive-page')">
-                <div class="btn-icon-img" data-icon="News">📣</div>
-                <span>News Noticeboard</span>
-            </button>
-            <button class="menu-btn news-row" id="templates-menu-btn" style="display:none;" onclick="openPage('templates-page')">
-                <div class="btn-icon-img" data-icon="Templates">📁</div>
-                <span>Templates (Admin)</span>
-            </button>
-            <button class="menu-btn news-row" id="admin-menu-btn" style="display:none; border: 2px dashed var(--red); background-color: #FFF5F5;" onclick="openPage('admin-dashboard-page')">
-                <div class="btn-icon-img" style="background-color: var(--red);">⚙️</div>
-                <span style="color: var(--red); font-weight: bold;">Admin Panel</span>
-            </button>
-        </div>
-
-        <div id="news-sneak-peek">📢 Loading news...</div>
-    </div>
-
-    <!-- Gallery Subpage -->
-    <div id="gallery-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('gallery-page')">⬅ Back</button>
-            <h3>Art Catalog Gallery</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content">
-            <p style="margin-bottom:15px; font-size:14px; color:#666; text-align:center;">Members can choose and request one printable layout template at a time.</p>
-            <div class="gallery-grid" id="gallery-grid-container">
-                <p class="empty-note">Loading...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Members Gallery Subpage -->
-    <div id="members-gallery-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('members-gallery-page')">⬅ Back</button>
-            <h3>Members Gallery</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content">
-            <div class="gallery-grid" id="members-gallery-container">
-                <p class="empty-note">Loading...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar Subpage -->
-    <div id="calendar-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('calendar-page')">⬅ Back</button>
-            <h3>Calendar</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content">
-            <div class="key-box">
-                <span><span class="dot green"></span> Dan here, session on</span>
-                <span><span class="dot yellow"></span> Session on, no Dan</span>
-                <span><span class="dot red"></span> No session</span>
-            </div>
-            <div id="calendar-list-container">
-                <p class="empty-note">Loading...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Art Materials Subpage -->
-    <div id="materials-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('materials-page')">⬅ Back</button>
-            <h3>Art Materials</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content" id="materials-list-container">
-            <p class="empty-note">Loading...</p>
-        </div>
-    </div>
-
-    <!-- News Noticeboard Subpage -->
-    <div id="news-archive-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('news-archive-page')">⬅ Back</button>
-            <h3>News Noticeboard</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content" id="news-list-container">
-            <p class="empty-note">Loading...</p>
-        </div>
-    </div>
-
-    <!-- Templates Subpage (Admin only) -->
-    <div id="templates-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('templates-page')">⬅ Back</button>
-            <h3>Templates</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content" id="templates-list-container">
-            <p class="empty-note">Loading...</p>
-        </div>
-    </div>
-
-    <!-- Admin Dashboard Subpage -->
-    <div id="admin-dashboard-page" class="sub-page">
-        <div class="sub-header">
-            <button class="btn-back" onclick="closePage('admin-dashboard-page')">⬅ Back</button>
-            <h3>Admin Panel</h3>
-            <div style="width:40px"></div>
-        </div>
-        <div class="sub-content">
-            <div class="admin-section">
-                <h4>Pending Template Requests</h4>
-                <div id="admin-requests-container">
-                    <p class="empty-note">Loading...</p>
-                </div>
-            </div>
-            <div class="admin-section">
-                <h4>Change Passwords</h4>
-                <input type="password" id="current-admin-pass" class="form-input" placeholder="Current admin password">
-                <input type="text" id="new-member-pass" class="form-input" placeholder="New member password (leave blank to keep)">
-                <input type="text" id="new-admin-pass" class="form-input" placeholder="New admin password (leave blank to keep)">
-                <button class="btn-login" onclick="updatePasswords()">Update Passwords</button>
-                <div id="pass-update-msg" style="font-size:13px; margin-top:10px; text-align:center;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Request Template Modal -->
-    <div id="request-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>Request Template</h3>
-            <p style="font-size:14px; margin-bottom:15px;" id="request-painting-name"></p>
-            <input type="text" id="request-name" class="form-input" placeholder="Your name">
-            <textarea id="request-notes" class="form-input" placeholder="Notes (e.g. needs to be bigger than A4)"></textarea>
-            <button class="btn-login" onclick="submitRequest()">Submit Request</button>
-            <button class="btn-login btn-secondary" style="margin-top:8px;" onclick="closeModal()">Cancel</button>
-            <div id="request-msg" style="font-size:13px; margin-top:10px; text-align:center;"></div>
-        </div>
-    </div>
-
-    <script>
-        var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfZ3ETcN4bsZUlsLjDlc31hAEhQc5_KVgvO-tGwXCnqrcqqIn3BgrXSgZpWbt3TrPw/exec";
-        var currentRole = null;
-        var currentRequestPainting = null;
-        var cachedIcons = {};
-
-        function showLockScreen() {
-            document.getElementById('splash-screen').style.display = 'none';
-            document.getElementById('lock-screen').style.display = 'flex';
-        }
-
-        function verifyPassword() {
-            var entered = document.getElementById('password-input').value;
-            var errorMsg = document.getElementById('error-msg');
-            var loading = document.getElementById('login-loading');
-            errorMsg.style.display = 'none';
-            loading.style.display = 'block';
-
-            postToScript({ action: 'verifyLogin', password: entered }).then(function(data) {
-                loading.style.display = 'none';
-                if (data.role === 'admin' || data.role === 'member') {
-                    localStorage.setItem('bcag_role', data.role);
-                    enterApp(data.role);
-                } else {
-                    errorMsg.style.display = 'block';
-                }
-            }).catch(function() {
-                loading.style.display = 'none';
-                errorMsg.textContent = 'Could not connect. Check your internet and try again.';
-                errorMsg.style.display = 'block';
-            });
-        }
-
-        function enterApp(role) {
-            currentRole = role;
-            document.getElementById('error-msg').style.display = 'none';
-            document.getElementById('lock-screen').style.display = 'none';
-            document.getElementById('splash-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            if (role === 'admin') {
-                document.getElementById('admin-menu-btn').style.display = 'flex';
-                document.getElementById('templates-menu-btn').style.display = 'flex';
-            }
-            loadAllData();
-        }
-
-        function openPage(pageId) {
-            document.getElementById(pageId).style.display = 'flex';
-            if (pageId === 'admin-dashboard-page') loadAdminRequests();
-        }
-
-        function closePage(pageId) {
-            document.getElementById(pageId).style.display = 'none';
-        }
-
-        function postToScript(payload) {
-            return fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(function(res) { return res.json(); });
-        }
-
-        function getFromScript(action) {
-            return fetch(SCRIPT_URL + '?action=' + action).then(function(res) { return res.json(); });
-        }
-
-        function loadAllData() {
-            loadIcons();
-            loadPortfolio();
-            loadCalendar();
-            loadNews();
-            loadMaterials();
-            loadMembersGallery();
-            if (currentRole === 'admin') loadTemplates();
-        }
-
-        function loadIcons() {
-            getFromScript('icons').then(function(rows) {
-                rows.forEach(function(r) {
-                    cachedIcons[r['Button Name']] = r['Icon Link'];
-                });
-                document.querySelectorAll('[data-icon]').forEach(function(el) {
-                    var key = el.getAttribute('data-icon');
-                    if (cachedIcons[key]) {
-                        el.innerHTML = '<img src="' + cachedIcons[key] + '">';
-                    }
-                });
-                if (cachedIcons['Home Icon']) {
-                    document.getElementById('splash-logo').innerHTML = '<img src="' + cachedIcons['Home Icon'] + '">';
-                    document.getElementById('header-logo').innerHTML = '<img src="' + cachedIcons['Home Icon'] + '">';
-                }
-            }).catch(function() {});
-        }
-
-        function loadPortfolio() {
-            getFromScript('portfolio').then(function(rows) {
-                var container = document.getElementById('gallery-grid-container');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No paintings added yet.</p>';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    return '<div class="gallery-item">' +
-                        '<div class="gallery-img-box" style="background-image: url(\'' + r['Master Image Link'] + '\');"></div>' +
-                        '<div class="gallery-info">' +
-                        '<h4>#' + r['ID'] + ' - ' + r['Title'] + '</h4>' +
-                        '<a class="btn-action" style="background-color:#555;" href="' + r['Master Image Link'] + '" target="_blank">View / Download</a>' +
-                        '<button class="btn-action" onclick="openRequestModal(' + r['ID'] + ', ' + JSON.stringify(r['Title']) + ')">Request Template</button>' +
-                        '</div></div>';
-                }).join('');
-            }).catch(function() {
-                document.getElementById('gallery-grid-container').innerHTML = '<p class="empty-note">Could not load gallery.</p>';
-            });
-        }
-
-        function loadTemplates() {
-            getFromScript('portfolio').then(function(rows) {
-                var container = document.getElementById('templates-list-container');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No templates added yet.</p>';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    return '<div class="materials-list-item"><span>#' + r['ID'] + ' - ' + r['Title'] + '</span></div>' +
-                        '<a class="btn-action" style="margin-bottom:15px;" href="' + r['Template Link'] + '" target="_blank">Open Print Template</a>';
-                }).join('');
-            }).catch(function() {});
-        }
-
-        function loadCalendar() {
-            getFromScript('calendar').then(function(rows) {
-                var container = document.getElementById('calendar-list-container');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No sessions added yet.</p>';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    var status = (r['Status'] || '').toLowerCase();
-                    var dotClass = 'green';
-                    var label = 'Dan here, session on';
-                    if (status.indexOf('no dan') !== -1 || status === 'yellow') { dotClass = 'yellow'; label = 'Session on, no Dan'; }
-                    else if (status === 'off' || status === 'red' || status.indexOf('no session') !== -1) { dotClass = 'red'; label = 'No session'; }
-                    return '<div class="calendar-timeline-item">' +
-                        '<span>' + r['Date'] + ' ' + (r['Time'] || '') + '</span>' +
-                        '<span><span class="dot ' + dotClass + '"></span>' + label + '</span>' +
-                        '</div>' +
-                        (r['Notes'] ? '<p style="font-size:12px; color:#666; margin:-5px 0 10px 5px;">' + r['Notes'] + '</p>' : '');
-                }).join('');
-            }).catch(function() {
-                document.getElementById('calendar-list-container').innerHTML = '<p class="empty-note">Could not load calendar.</p>';
-            });
-        }
-
-        function loadNews() {
-            getFromScript('news').then(function(rows) {
-                var container = document.getElementById('news-list-container');
-                var sneak = document.getElementById('news-sneak-peek');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No news yet.</p>';
-                    sneak.textContent = '📢 Welcome to BCAG!';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    return '<div class="news-item"><span class="news-date">' + (r['Date'] || '') + '</span>' +
-                        '<h4>' + r['Title'] + '</h4><p>' + r['Text'] + '</p></div>';
-                }).join('');
-                sneak.textContent = '📢 Latest News: ' + rows[rows.length - 1]['Title'];
-            }).catch(function() {});
-        }
-
-        function loadMaterials() {
-            getFromScript('materials').then(function(rows) {
-                var container = document.getElementById('materials-list-container');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No materials listed yet.</p>';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    return '<div class="materials-list-item">🎨 ' + r['Item'] + '</div>';
-                }).join('');
-            }).catch(function() {});
-        }
-
-        function loadMembersGallery() {
-            getFromScript('membersgallery').then(function(rows) {
-                var container = document.getElementById('members-gallery-container');
-                if (!rows.length) {
-                    container.innerHTML = '<p class="empty-note">No member paintings added yet.</p>';
-                    return;
-                }
-                container.innerHTML = rows.map(function(r) {
-                    return '<div class="gallery-item">' +
-                        '<div class="gallery-img-box" style="background-image: url(\'' + r['Image Link'] + '\');"></div>' +
-                        '<div class="gallery-info"><h4>' + r['Name'] + '</h4></div></div>';
-                }).join('');
-            }).catch(function() {});
-        }
-
-        function openRequestModal(id, title) {
-            currentRequestPainting = { id: id, title: title };
-            document.getElementById('request-painting-name').textContent = 'For: ' + title;
-            document.getElementById('request-name').value = '';
-            document.getElementById('request-notes').value = '';
-            document.getElementById('request-msg').textContent = '';
-            document.getElementById('request-modal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('request-modal').style.display = 'none';
-        }
-
-        function submitRequest() {
-            var name = document.getElementById('request-name').value.trim();
-            var notes = document.getElementById('request-notes').value.trim();
-            var msg = document.getElementById('request-msg');
-            if (!name) { msg.textContent = 'Please enter your name.'; return; }
-            var now = new Date();
-            var dateStr = now.toLocaleDateString('en-GB');
-            var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            msg.textContent = 'Sending...';
-            postToScript({
-                action: 'submitRequest',
-                name: name,
-                id: currentRequestPainting.id,
-                painting: currentRequestPainting.title,
-                date: dateStr,
-                time: timeStr,
-                notes: notes
-            }).then(function(res) {
-                if (res.success) {
-                    msg.textContent = 'Request sent! Thank you.';
-                    setTimeout(closeModal, 1500);
-                } else {
-                    msg.textContent = 'Something went wrong, please try again.';
-                }
-            }).catch(function() {
-                msg.textContent = 'Could not connect. Please try again.';
-            });
-        }
-
-        function loadAdminRequests() {
-            var container = document.getElementById('admin-requests-container');
-            container.innerHTML = '<p class="empty-note">Loading...</p>';
-            getFromScript('templaterequests').then(function(rows) {
-                var pending = rows.filter(function(r) { return r['Status'] !== 'Done'; });
-                if (!pending.length) {
-                    container.innerHTML = '<p class="empty-note">No pending requests.</p>';
-                    return;
-                }
-                container.innerHTML = pending.map(function(r) {
-                    return '<div class="admin-request-item">' +
-                        '<strong>' + r['Name'] + '</strong> — ' + r['Painting'] +
-                        '<div class="req-meta">' + r['Date'] + ' ' + r['Time'] + (r['Notes'] ? ' — ' + r['Notes'] : '') + '</div>' +
-                        '<button class="btn-action" onclick="markDone(' + r['_row'] + ', this)">Mark as Done</button>' +
-                        '</div>';
-                }).join('');
-            }).catch(function() {
-                container.innerHTML = '<p class="empty-note">Could not load requests.</p>';
-            });
-        }
-
-        function markDone(rowNum, btnEl) {
-            btnEl.disabled = true;
-            btnEl.textContent = 'Saving...';
-            postToScript({ action: 'markDone', row: rowNum }).then(function(res) {
-                if (res.success) {
-                    loadAdminRequests();
-                }
-            });
-        }
-
-        function updatePasswords() {
-            var currentAdmin = document.getElementById('current-admin-pass').value;
-            var newMember = document.getElementById('new-member-pass').value.trim();
-            var newAdmin = document.getElementById('new-admin-pass').value.trim();
-            var msg = document.getElementById('pass-update-msg');
-            if (!currentAdmin) { msg.textContent = 'Enter your current admin password.'; msg.style.color = 'var(--red)'; return; }
-            msg.textContent = 'Updating...';
-            msg.style.color = '#666';
-            postToScript({
-                action: 'updatePasswords',
-                currentAdminPassword: currentAdmin,
-                newMemberPassword: newMember,
-                newAdminPassword: newAdmin
-            }).then(function(res) {
-                if (res.success) {
-                    msg.textContent = 'Passwords updated successfully.';
-                    msg.style.color = 'var(--green)';
-                    document.getElementById('current-admin-pass').value = '';
-                    document.getElementById('new-member-pass').value = '';
-                    document.getElementById('new-admin-pass').value = '';
-                } else {
-                    msg.textContent = res.error || 'Update failed.';
-                    msg.style.color = 'var(--red)';
-                }
-            }).catch(function() {
-                msg.textContent = 'Could not connect.';
-                msg.style.color = 'var(--red)';
-            });
-        }
-
-        // On load: skip straight to app if already logged in on this device
-        window.addEventListener('load', function() {
-            var savedRole = localStorage.getItem('bcag_role');
-            if (savedRole === 'admin' || savedRole === 'member') {
-                enterApp(savedRole);
-            }
-            document.getElementById('password-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') verifyPassword();
-            });
-        });
-    </script>
+</div>
 
 </body>
 </html>
