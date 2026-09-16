@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BCAG Members Login</title>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body {
   margin: 0;
@@ -17,7 +17,6 @@ body {
   padding: 20px;
   box-sizing: border-box;
 }
-
 .login-box {
   background: white;
   width: 100%;
@@ -27,22 +26,18 @@ body {
   text-align: center;
   box-shadow: 0 4px 18px rgba(0,0,0,0.12);
 }
-
 .logo {
   width: 120px;
   margin-bottom: 15px;
 }
-
 h1 {
   margin: 5px 0 10px;
   color: #333;
 }
-
 p {
   color: #666;
   margin-bottom: 25px;
 }
-
 input {
   width: 100%;
   padding: 14px;
@@ -52,7 +47,6 @@ input {
   box-sizing: border-box;
   font-size: 16px;
 }
-
 button {
   width: 100%;
   padding: 14px;
@@ -64,7 +58,10 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
-
+.message {
+  margin-top: 15px;
+  color: #c00;
+}
 .back {
   display: block;
   margin-top: 20px;
@@ -73,27 +70,41 @@ button {
 }
 </style>
 </head>
-
 <body>
-
 <div class="login-box">
-
 <img class="logo"
 src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
-
 <h1>BCAG Members</h1>
-
 <p>Please log in to access the members area.</p>
-
-<input type="text" placeholder="Email or username">
-
-<input type="password" placeholder="Password">
-
-<button>Log In</button>
-
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Log In</button>
+<div id="message" class="message"></div>
 <a class="back" href="index.html">← Back to Home</a>
-
 </div>
-
+<script>
+const SUPABASE_URL = "https://rclomczdigsukcswnnju.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const message = document.getElementById("message");
+  message.textContent = "";
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+  if (error) {
+    message.textContent = "Login failed. Please check your email and password.";
+    return;
+  }
+  window.location.href = "members.html";
+}
+</script>
 </body>
 </html>
