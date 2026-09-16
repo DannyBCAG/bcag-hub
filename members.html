@@ -122,11 +122,8 @@ h1 {
 
     <div class="grid">
 
-        <!-- GALLERY - DO NOT CHANGE -->
-        <a class="card"
-           href="https://script.google.com/macros/s/AKfycbxzk_xkfKdxvFbyfJ49ecoUouJL7I_b4Um8_PTFPruJ-xi71ljoY5DW-tfGXHf11fux/exec"
-           target="_blank">
-
+        <!-- GALLERY -->
+        <a class="card" href="newgallery.html">
             <img
                 src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp"
                 alt="Gallery">
@@ -134,7 +131,7 @@ h1 {
             <div class="card-title">Gallery</div>
         </a>
 
-                <!-- TEMPLATES -->
+        <!-- TEMPLATES -->
         <a id="templatesCard" class="card" href="templates.html">
             <img
                 src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp"
@@ -142,7 +139,6 @@ h1 {
 
             <div class="card-title">Templates</div>
         </a>
-
 
         <!-- MEMBERS GALLERY -->
         <a class="card" href="members-gallery.html">
@@ -205,14 +201,13 @@ function checkLogin() {
         return;
     }
 
-        if (role === "admin") {
+    if (role === "admin") {
         document.getElementById("adminButton").style.display = "block";
     } else {
         const templatesCard = document.getElementById("templatesCard");
         templatesCard.style.opacity = "0.4";
         templatesCard.style.pointerEvents = "none";
     }
-
 }
 
 function logout() {
