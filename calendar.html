@@ -142,7 +142,9 @@ body {
 
 const CALENDAR_URL = "https://script.google.com/macros/s/AKfycbwF_zoOfAmpft4owRytE3JxY9uXSAVY5giAp_AMmyiduk1ATYkOgOyj51xtUm1E7xDH/exec";
 
-fetch(CALENDAR_URL)
+fetch(CALENDAR_URL, {
+    mode: "cors"
+})
     .then(response => response.json())
     .then(data => {
 
