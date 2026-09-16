@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCAG Members Area</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f7f1e8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.box {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  padding: 35px 25px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+}
+.logo {
+  width: 120px;
+}
+h1 {
+  color: #333;
+}
+p {
+  color: #666;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background: #333;
+  color: white;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+<div class="box">
+<img class="logo"
+src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
+<h1>Welcome to BCAG</h1>
+<p>You are now logged in.</p>
+<p>This is your private members area.</p>
+<button onclick="logout()">Log Out</button>
+</div>
+<script>
+const SUPABASE_URL = "https://rclomczdigsukcswnnju.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+async function checkLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) {
+    window.location.href = "login.html";
+  }
+}
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = "login.html";
+}
+checkLogin();
+</script>
+</body>
+</html>
