@@ -157,9 +157,10 @@
         </a>
 
         <button id="requestButton"
-                class="viewer-button">
-            Request Template
-        </button>
+        class="viewer-button"
+        onclick="requestTemplate()">
+    Request Template
+</button>
 
     </div>
 
@@ -300,7 +301,57 @@ function escapeHtml(text) {
     return div.innerHTML;
 
 }
+function requestTemplate() {
 
+    const title =
+        document.getElementById("fullTitle").textContent;
+
+    const name = prompt(
+        "Please enter your name:"
+    );
+
+    if (!name || !name.trim()) {
+        return;
+    }
+
+    const formData = new URLSearchParams();
+
+    formData.append("title", title);
+    formData.append("memberName", name.trim());
+
+    fetch(API_URL, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+
+        if (result.success) {
+
+            alert(
+                "Template request sent successfully."
+            );
+
+        } else {
+
+            alert(
+                "Sorry, the request could not be sent."
+            );
+
+            console.error(result.message);
+        }
+
+    })
+    .catch(error => {
+
+        console.error(error);
+
+        alert(
+            "Sorry, there was a problem sending your request."
+        );
+
+    });
+}
 </script>
 
 </body>
