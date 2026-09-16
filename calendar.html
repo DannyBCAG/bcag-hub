@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCAG Calendar</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ed;
+    color: #333;
+}
+
+.header {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.calendar {
+    padding: 15px;
+    max-width: 700px;
+    margin: auto;
+}
+
+.session {
+    background: white;
+    margin-bottom: 15px;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    border-left: 12px solid #ccc;
+}
+
+.session.green {
+    border-left-color: #4caf50;
+}
+
+.session.yellow {
+    border-left-color: #f4c542;
+}
+
+.session.red {
+    border-left-color: #e53935;
+}
+
+.date {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.time {
+    font-size: 18px;
+    margin-top: 6px;
+}
+
+.notes {
+    margin-top: 8px;
+    font-size: 17px;
+}
+
+.key {
+    background: white;
+    margin: 20px 15px;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.key-title {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.key div {
+    margin: 7px 0;
+}
+
+.dot {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.green-dot {
+    background: #4caf50;
+}
+
+.yellow-dot {
+    background: #f4c542;
+}
+
+.red-dot {
+    background: #e53935;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    BCAG Calendar
+</div>
+
+<div id="calendar" class="calendar">
+    <div class="loading">Loading calendar...</div>
+</div>
+
+<div class="key">
+    <div class="key-title">Key</div>
+
+    <div>
+        <span class="dot green-dot"></span>
+        Session on – Dan present
+    </div>
+
+    <div>
+        <span class="dot yellow-dot"></span>
+        Session on – Dan absent
+    </div>
+
+    <div>
+        <span class="dot red-dot"></span>
+        Session off
+    </div>
+</div>
+
+<script>
+
+const CALENDAR_URL = "https://script.google.com/macros/s/AKfycbzlX1eqvU0eWVvkVikwy-8o-GG0wMOoNRprULfvy3X8qlIHHF-Cw6maGlWS9PSqdR7x/exec";
+
+fetch(CALENDAR_URL)
+    .then(response => response.json())
+    .then(data => {
+
+        const calendar = document.getElementById("calendar");
+
+        calendar.innerHTML = "";
+
+        data.forEach(session => {
+
+            const card = document.createElement("div");
+
+            let status = session.status.toLowerCase();
+
+            card.className = "session " + status;
+
+            card.innerHTML = `
+                <div class="date">${session.date}</div>
+                <div class="time">${session.time}</div>
+                <div class="notes">${session.notes}</div>
+            `;
+
+            calendar.appendChild(card);
+        });
+
+    })
+    .catch(error => {
+
+        document.getElementById("calendar").innerHTML =
+            "<div class='loading'>Sorry, the calendar could not be loaded.</div>";
+
+        console.error(error);
+
+    });
+
+</script>
+
+</body>
+</html>
