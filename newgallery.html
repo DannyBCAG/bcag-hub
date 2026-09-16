@@ -9,120 +9,118 @@
 
 <style>
 
-    * {
-        box-sizing: border-box;
-    }
+* {
+    box-sizing: border-box;
+}
 
-    body {
-        margin: 0;
-        padding: 15px;
-        background: #f5f1e8;
-        font-family: Arial, sans-serif;
-        color: #333;
-    }
+body {
+    margin: 0;
+    padding: 15px;
+    background: #f5f1e8;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
 
-    h1 {
-        text-align: center;
-        margin: 5px 0 18px;
-        font-size: 26px;
-    }
+h1 {
+    text-align: center;
+    margin: 5px 0 18px;
+    font-size: 26px;
+}
 
-    #gallery {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-    }
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
 
-    .painting {
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-        cursor: pointer;
-    }
+.painting {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    cursor: pointer;
+}
 
-    .painting img {
-        width: 100%;
-        height: 150px;
-        object-fit: contain;
-        display: block;
-        background: white;
-    }
+.painting img {
+    width: 100%;
+    height: 150px;
+    object-fit: contain;
+    display: block;
+    background: white;
+}
 
-    .painting-title {
-        padding: 8px 5px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: bold;
-    }
+.painting-title {
+    padding: 8px 5px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+}
 
-    #message {
-        text-align: center;
-        padding: 30px 10px;
-        font-size: 17px;
-    }
+#message {
+    text-align: center;
+    padding: 30px 10px;
+    font-size: 17px;
+}
 
-    /* FULL SIZE VIEW */
+#viewer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
 
-    #viewer {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.92);
-        z-index: 1000;
-        overflow-y: auto;
-        padding: 20px;
-    }
+#viewer-content {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
 
-    #viewer-content {
-        max-width: 900px;
-        margin: 0 auto;
-        text-align: center;
-    }
+#closeViewer {
+    position: fixed;
+    top: 12px;
+    right: 18px;
+    color: white;
+    font-size: 34px;
+    cursor: pointer;
+    z-index: 1001;
+}
 
-    #closeViewer {
-        position: fixed;
-        top: 12px;
-        right: 18px;
-        color: white;
-        font-size: 34px;
-        cursor: pointer;
-        z-index: 1001;
-    }
+#fullImage {
+    max-width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    margin-top: 35px;
+}
 
-    #fullImage {
-        max-width: 100%;
-        max-height: 75vh;
-        object-fit: contain;
-        margin-top: 35px;
-    }
+#fullTitle {
+    color: white;
+    font-size: 21px;
+    margin: 15px 0;
+}
 
-    #fullTitle {
-        color: white;
-        font-size: 21px;
-        margin: 15px 0;
-    }
+.viewer-button {
+    display: inline-block;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 20px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+}
 
-    .viewer-button {
-        display: inline-block;
-        border: none;
-        border-radius: 8px;
-        padding: 13px 20px;
-        margin: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        text-decoration: none;
-    }
+#downloadButton {
+    background: white;
+    color: #333;
+}
 
-    #downloadButton {
-        background: white;
-        color: #333;
-    }
-
-    #requestButton {
-        background: #e7c98b;
-        color: #333;
-    }
+#requestButton {
+    background: #e7c98b;
+    color: #333;
+}
 
 </style>
 </head>
@@ -156,11 +154,12 @@
            Download
         </a>
 
-        <button id="requestButton"
-        class="viewer-button"
-        onclick="requestTemplate()">
-    Request Template
-</button>
+        <button
+            id="requestButton"
+            class="viewer-button"
+            onclick="requestTemplate()">
+            Request Template
+        </button>
 
     </div>
 
@@ -176,6 +175,8 @@ const API_URL =
 let paintings = [];
 
 
+/* LOAD GALLERY */
+
 fetch(API_URL)
 
     .then(response => response.json())
@@ -184,15 +185,21 @@ fetch(API_URL)
 
         paintings = data;
 
-        const gallery = document.getElementById("gallery");
-        const message = document.getElementById("message");
+        const gallery =
+            document.getElementById("gallery");
+
+        const message =
+            document.getElementById("message");
 
         message.style.display = "none";
+
 
         if (!paintings.length) {
 
             message.style.display = "block";
-            message.textContent = "No paintings found.";
+
+            message.textContent =
+                "No paintings found.";
 
             return;
         }
@@ -200,9 +207,11 @@ fetch(API_URL)
 
         paintings.forEach((painting, index) => {
 
-            const card = document.createElement("div");
+            const card =
+                document.createElement("div");
 
             card.className = "painting";
+
 
             card.innerHTML = `
 
@@ -242,21 +251,29 @@ fetch(API_URL)
 
 
 
+/* OPEN PAINTING */
+
 function openViewer(index) {
 
-    const painting = paintings[index];
+    const painting =
+        paintings[index];
+
 
     document.getElementById("fullImage").src =
         painting.image;
 
+
     document.getElementById("fullImage").alt =
         painting.title;
+
 
     document.getElementById("fullTitle").textContent =
         painting.title;
 
+
     document.getElementById("downloadButton").href =
         painting.image;
+
 
     document.getElementById("viewer").style.display =
         "block";
@@ -264,6 +281,8 @@ function openViewer(index) {
 }
 
 
+
+/* CLOSE BUTTON */
 
 document.getElementById("closeViewer")
     .addEventListener("click", closeViewer);
@@ -292,66 +311,104 @@ function closeViewer() {
 
 
 
+/* ESCAPE HTML */
+
 function escapeHtml(text) {
 
-    const div = document.createElement("div");
+    const div =
+        document.createElement("div");
 
-    div.textContent = text || "";
+    div.textContent =
+        text || "";
 
     return div.innerHTML;
 
 }
+
+
+
+/* REQUEST TEMPLATE */
+
 function requestTemplate() {
 
     const title =
         document.getElementById("fullTitle").textContent;
 
-    const name = prompt(
-        "Please enter your name:"
-    );
+
+    const name =
+        prompt("Please enter your name:");
+
 
     if (!name || !name.trim()) {
+
         return;
+
     }
 
-    const formData = new URLSearchParams();
 
-    formData.append("title", title);
-    formData.append("memberName", name.trim());
+    const memberName =
+        name.trim();
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "title",
+        title
+    );
+
+
+    formData.append(
+        "memberName",
+        memberName
+    );
+
 
     fetch(API_URL, {
+
         method: "POST",
-        body: formData
+
+        body: formData,
+
+        redirect: "follow"
+
     })
-    .then(response => response.json())
+
+    .then(response => {
+
+        return response.text();
+
+    })
+
     .then(result => {
 
-        if (result.success) {
+        console.log(
+            "Request response:",
+            result
+        );
 
-            alert(
-                "Template request sent successfully."
-            );
 
-        } else {
-
-            alert(
-                "Sorry, the request could not be sent."
-            );
-
-            console.error(result.message);
-        }
+        alert(
+            "Template request sent successfully."
+        );
 
     })
+
     .catch(error => {
 
         console.error(error);
 
+
         alert(
-            "Sorry, there was a problem sending your request."
+            "Sorry, there was a problem sending the request."
         );
 
     });
+
 }
+
 </script>
 
 </body>
