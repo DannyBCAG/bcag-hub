@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BCAG News</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ed;
+    color: #333;
+}
+
+.header {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.news {
+    padding: 15px;
+    max-width: 700px;
+    margin: auto;
+}
+
+.news-item {
+    background: white;
+    margin-bottom: 15px;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.title {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.text {
+    font-size: 18px;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.date {
+    font-size: 14px;
+    margin-top: 12px;
+    color: #777;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    BCAG News
+</div>
+
+<div id="news" class="news">
+    <div class="loading">Loading news...</div>
+</div>
+
+<script>
+
+const NEWS_URL = "https://script.google.com/macros/s/AKfycbwA2-WwCmevRd50mMuWDbF-7sJ3K_BkOvBj_CkvEcWnIlr61YNqmFCwzk1OPW-ZqAuB/exec";
+
+fetch(NEWS_URL, {
+    mode: "cors"
+})
+.then(response => response.json())
+.then(data => {
+
+    const container = document.getElementById("news");
+
+    container.innerHTML = "";
+
+    data.forEach(item => {
+
+        const card = document.createElement("div");
+
+        card.className = "news-item";
+
+        card.innerHTML = `
+            <div class="title">${item.title}</div>
+            <div class="text">${item.text}</div>
+            <div class="date">${item.date}</div>
+        `;
+
+        container.appendChild(card);
+    });
+
+})
+.catch(error => {
+
+    document.getElementById("news").innerHTML =
+        "<div class='loading'>Sorry, the news could not be loaded.</div>";
+
+    console.error(error);
+
+});
+
+</script>
+
+</body>
+</html>
