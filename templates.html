@@ -41,7 +41,6 @@ h1 {
     padding: 30px 10px;
     font-size: 17px;
 }
-
 #list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -51,3 +50,153 @@ h1 {
 .painting {
     background: white;
     border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    text-align: center;
+}
+
+.painting img {
+    width: 100%;
+    height: 130px;
+    
+<body>
+
+<a class="back-link" href="members.html">&larr; Back</a>
+
+<h1>Templates (Admin)</h1>
+
+<div id="message">
+    Loading templates...
+</div>
+
+<div id="list"></div>
+
+
+<script>
+
+/* Only allow admin to view this page */
+
+const role =
+    localStorage.getItem("bcagRole");
+
+if (role !== "admin") {
+
+    window.location.href = "members.html";
+
+}
+
+
+/* GOOGLE APPS SCRIPT */
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbwQbdX_P5WPDWFaPXo3zcjiyxBGH-78_NLi3eE4aBLjGSlRM0S-eJ0cOG
+object-fit: contain;
+    display: block;
+    background: white;
+}
+
+.painting-title {
+    padding: 8px 5px 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.download-button {
+    display: block;
+    margin: 0 10px 10px;
+    padding: 10px;
+    
+
+
+fetch(API_URL)
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        const list =
+            document.getElementById("list");
+
+        const message =
+            document.getElementById("message");
+
+
+        message.style.display = "none";
+
+
+        if (!data.length) {
+
+            message.style.display = "block";
+
+            message.textContent =
+                "No paintings found.";
+
+            return;
+
+        }
+
+
+        data.forEach(painting => {
+
+            const card =
+                document.createElement("div");
+
+
+            card.className =
+                "painting";
+
+
+            const templateHtml =
+                painting.template
+                    ? `<a class="download-button" href="${painting.template}" target="_blank" download>Download</a>`
+                    : `<span class="no-template">No template uploaded</span>`;
+
+
+            card.innerHTML = `
+
+                <img
+                    src="${painting.image}"
+                    alt="${escapeHtml(painting.title)}"
+                >
+
+                <div class="painting-title">
+                    ${escapeHtml(painting.title)}
+                </div>
+
+                ${templateHtml}
+
+            `;
+
+
+            list.appendChild(card);
+
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document.getElementById("message").textContent =
+            "Sorry — templates could not be loaded.";
+
+    });
+
+
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text || "";
+
+    return div.innerHTML;
+
+}
+
+</script>
+</body>
+</html>
