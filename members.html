@@ -205,9 +205,14 @@ function checkLogin() {
         return;
     }
 
-    if (role === "admin") {
+        if (role === "admin") {
         document.getElementById("adminButton").style.display = "block";
+    } else {
+        const templatesCard = document.getElementById("templatesCard");
+        templatesCard.style.opacity = "0.4";
+        templatesCard.style.pointerEvents = "none";
     }
+
 }
 
 function logout() {
