@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <!-- BCAG NEW GALLERY TEST -->
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -123,13 +125,17 @@ h1 {
 }
 
 </style>
+
 </head>
+
 
 <body>
 
 <h1>Gallery</h1>
 
-<div id="message">Loading paintings...</div>
+<div id="message">
+    Loading paintings...
+</div>
 
 <div id="gallery"></div>
 
@@ -142,22 +148,29 @@ h1 {
 
     <div id="viewer-content">
 
-        <img id="fullImage" src="" alt="">
+        <img
+            id="fullImage"
+            src=""
+            alt=""
+        >
 
         <div id="fullTitle"></div>
 
-        <a id="downloadButton"
-           class="viewer-button"
-           href=""
-           target="_blank"
-           download>
-           Download
+        <a
+            id="downloadButton"
+            class="viewer-button"
+            href=""
+            target="_blank"
+            download
+        >
+            Download
         </a>
 
         <button
             id="requestButton"
             class="viewer-button"
-            onclick="requestTemplate()">
+            onclick="requestTemplate()"
+        >
             Request Template
         </button>
 
@@ -168,8 +181,12 @@ h1 {
 
 <script>
 
+
+/* GOOGLE APPS SCRIPT */
+
 const API_URL =
 "https://script.google.com/macros/s/AKfycbxCKC-egEBX1XiEgpiodtP-8h_phDuK87A-W97e_tz_mO9OVYhN0zY0fHg56ZhlO6ZF/exec";
+
 
 let paintings = [];
 
@@ -190,6 +207,7 @@ fetch(API_URL)
         const message =
             document.getElementById("message");
 
+
         message.style.display = "none";
 
 
@@ -201,6 +219,7 @@ fetch(API_URL)
                 "No paintings found.";
 
             return;
+
         }
 
 
@@ -209,7 +228,9 @@ fetch(API_URL)
             const card =
                 document.createElement("div");
 
-            card.className = "painting";
+
+            card.className =
+                "painting";
 
 
             card.innerHTML = `
@@ -226,11 +247,10 @@ fetch(API_URL)
             `;
 
 
-            card.addEventListener("click", () => {
-
-                openViewer(index);
-
-            });
+            card.addEventListener(
+                "click",
+                () => openViewer(index)
+            );
 
 
             gallery.appendChild(card);
@@ -281,24 +301,30 @@ function openViewer(index) {
 
 
 
-/* CLOSE BUTTON */
+/* CLOSE VIEWER */
 
-document.getElementById("closeViewer")
-    .addEventListener("click", closeViewer);
+document
+    .getElementById("closeViewer")
+    .addEventListener(
+        "click",
+        closeViewer
+    );
 
 
+document
+    .getElementById("viewer")
+    .addEventListener(
+        "click",
+        function(event) {
 
-document.getElementById("viewer")
-    .addEventListener("click", function(event) {
+            if (event.target === this) {
 
-        if (event.target === this) {
+                closeViewer();
 
-            closeViewer();
+            }
 
         }
-
-    });
-
+    );
 
 
 function closeViewer() {
@@ -331,7 +357,9 @@ function escapeHtml(text) {
 function requestTemplate() {
 
     const title =
-        document.getElementById("fullTitle").textContent;
+        document
+            .getElementById("fullTitle")
+            .textContent;
 
 
     const name =
@@ -349,56 +377,61 @@ function requestTemplate() {
         name.trim();
 
 
-    const formData = new URLSearchParams();
+    /*
+     * Send the request using GET.
+     */
 
-formData.append("title", title);
-formData.append("memberName", memberName);
-
-
-    fetch(API_URL, {
-
-        method: "POST",
-
-        body: formData,
-
-        redirect: "follow"
-
-    })
-
-    .then(response => {
-
-        return response.text();
-
-    })
-
-    .then(result => {
-
-        console.log(
-            "Request response:",
-            result
-        );
+    const requestURL =
+        API_URL +
+        "?title=" +
+        encodeURIComponent(title) +
+        "&memberName=" +
+        encodeURIComponent(memberName);
 
 
-        alert(
-            "Template request sent successfully."
-        );
+    fetch(requestURL)
 
-    })
+        .then(response => response.json())
 
-    .catch(error => {
+        .then(result => {
 
-        console.error(error);
+            console.log(
+                "Request response:",
+                result
+            );
 
 
-        alert(
-            "Sorry, there was a problem sending the request."
-        );
+            if (result.success) {
 
-    });
+                alert(
+                    "Template request sent successfully."
+                );
+
+            } else {
+
+                alert(
+                    "Sorry, the request could not be sent."
+                );
+
+            }
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            alert(
+                "Sorry, there was a problem sending the request."
+            );
+
+        });
 
 }
+
 
 </script>
 
 </body>
+
 </html>
