@@ -124,6 +124,11 @@ h1 {
     color: #333;
 }
 
+#requestButton[disabled] {
+    opacity: 0.6;
+    cursor: default;
+}
+
 </style>
 
 </head>
@@ -353,6 +358,11 @@ function escapeHtml(text) {
 
 
 /* REQUEST TEMPLATE */
+/*
+ * Sends the request quietly in the background using fetch,
+ * instead of submitting a form (which used to open a new tab).
+ * Shows a simple "Request sent" message instead.
+ */
 function requestTemplate() {
 
     const title =
@@ -367,35 +377,44 @@ function requestTemplate() {
 
     const memberName = name.trim();
 
-    const form =
-        document.createElement("form");
+    const requestButton =
+        document.getElementById("requestButton");
 
-    form.method = "GET";
-    form.action = API_URL;
-    form.target = "_blank";
+    requestButton.disabled = true;
 
-    const titleInput =
-        document.createElement("input");
+    requestButton.textContent = "Sending...";
 
-    titleInput.type = "hidden";
-    titleInput.name = "title";
-    titleInput.value = title;
+    const url =
+        API_URL +
+        "?title=" + encodeURIComponent(title) +
+        "&memberName=" + encodeURIComponent(memberName);
 
-    const nameInput =
-        document.createElement("input");
+    fetch(url)
 
-    nameInput.type = "hidden";
-    nameInput.name = "memberName";
-    nameInput.value = memberName;
+        .then(response => response.json())
 
-    form.appendChild(titleInput);
-    form.appendChild(nameInput);
+        .then(data => {
 
-    document.body.appendChild(form);
+            alert("Request sent, thanks!");
 
-    form.submit();
+        })
 
-    document.body.removeChild(form);
+        .catch(error => {
+
+            console.error(error);
+
+            alert("Sorry, something went wrong sending your request.");
+
+        })
+
+        .finally(() => {
+
+            requestButton.disabled = false;
+
+            requestButton.textContent = "Request Template";
+
+        });
+
 }
 
 </script>
