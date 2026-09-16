@@ -350,20 +350,10 @@ function requestTemplate() {
         name.trim();
 
 
-    const formData =
-        new FormData();
+    const formData = new URLSearchParams();
 
-
-    formData.append(
-        "title",
-        title
-    );
-
-
-    formData.append(
-        "memberName",
-        memberName
-    );
+formData.append("title", title);
+formData.append("memberName", memberName);
 
 
     fetch(API_URL, {
