@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>BCAG Art Group</title>
+<title>BCAG Art Group Login</title>
 
-<link rel="apple-touch-icon" href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
+<link rel="apple-touch-icon"
+href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
 
 <style>
 * {
@@ -15,88 +16,73 @@
 
 body {
     margin: 0;
+    min-height: 100vh;
     font-family: Arial, sans-serif;
-    background: #ffffff;
-    color: #333;
-    text-align: center;
+    background: #f7f1e8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
-.container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px 15px 40px;
+.login-box {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 35px 25px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
 }
 
 .logo {
     width: 150px;
     height: 150px;
     object-fit: contain;
-    margin: 5px auto 10px;
-    display: block;
+    margin-bottom: 10px;
 }
 
 h1 {
-    margin: 0 0 20px;
-    font-size: 28px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    max-width: 700px;
-    margin: 0 auto 25px;
-}
-
-.card {
-    border: none;
-    background: white;
-    border-radius: 16px;
-    padding: 10px;
-    text-decoration: none;
+    margin: 5px 0 10px;
     color: #333;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
-.card img {
+p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+input {
     width: 100%;
-    max-width: 150px;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    display: block;
-    margin: auto;
+    padding: 14px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 16px;
 }
 
-.card-title {
-    font-size: 17px;
-    font-weight: bold;
-    margin: 8px 0 5px;
-}
-
-.login {
-    display: block;
-    max-width: 500px;
-    margin: 12px auto;
-    padding: 16px;
-    border-radius: 14px;
-    text-decoration: none;
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #333;
     color: white;
-    background: #555;
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-@media (min-width: 700px) {
-    .grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.message {
+    margin-top: 15px;
+    color: #c00;
+    min-height: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="login-box">
 
     <img
         class="logo"
@@ -106,52 +92,147 @@ h1 {
 
     <h1>BCAG Art Group</h1>
 
-    <div class="grid">
+    <p>Enter your password to continue.</p>
 
-        <a class="card"
-           href="https://script.google.com/macros/s/AKfycbxzk_xkfKdxvFbyfJ49ecoUouJL7I_b4Um8_PTFPruJ-xi71ljoY5DW-tfGXHf11fux/exec" target="_blank">
-            <img src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp"
-                 alt="Gallery">
-            <div class="card-title">Gallery</div>
-        </a>
+    <input
+        id="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+    >
 
-        <a class="card" href="#">
-            <img src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp"
-                 alt="Templates">
-            <div class="card-title">Templates</div>
-        </a>
+    <button onclick="login()">Log In</button>
 
-        <a class="card" href="#">
-            <img src="https://i.postimg.cc/W1GV4rjs/806687279-1454810143373747-573763567689125232-n.webp"
-                 alt="Members Gallery">
-            <div class="card-title">Members Gallery</div>
-        </a>
-
-        <a class="card" href="#">
-            <img src="https://i.postimg.cc/NLhhsGzr/806515828-1802584224076914-3045022485641698308-n.webp"
-                 alt="Calendar">
-            <div class="card-title">Calendar</div>
-        </a>
-
-        <a class="card" href="#">
-            <img src="https://i.postimg.cc/50T9zVr3/807284902-911269448405387-2529296765882370696-n.webp"
-                 alt="Art Materials">
-            <div class="card-title">Art Materials</div>
-        </a>
-
-        <a class="card" href="#">
-            <img src="https://i.postimg.cc/VNNzHvQs/news-megaphone-exact-style.png"
-                 alt="News">
-            <div class="card-title">News</div>
-        </a>
-
-    </div>
-
-    <a class="login" href="https://dannybcag.github.io/bcag-hub/login.html" target="_blank">Members Login</a>
-
-    <a class="login" href="#">Admin Login</a>
+    <div id="message" class="message"></div>
 
 </div>
+
+<script>
+
+const SUPABASE_URL =
+"https://rclomczdigsukcswnnju.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// If already logged in, go straight to Home
+function checkExistingLogin() {
+
+    const loggedIn =
+        localStorage.getItem("bcagLoggedIn");
+
+    if (loggedIn === "true") {
+        window.location.href = "members.html";
+    }
+}
+
+
+// Login
+async function login() {
+
+    const password =
+        document.getElementById("password").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = "";
+
+    if (!password) {
+        message.textContent = "Please enter your password.";
+        return;
+    }
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+            .from("app_settings")
+            .select("members_password, admin_password")
+            .eq("id", 1)
+            .single();
+
+        if (error) {
+            message.textContent =
+                "Unable to connect. Please try again.";
+            return;
+        }
+
+
+        // ADMIN
+        if (password === data.admin_password) {
+
+            localStorage.setItem(
+                "bcagLoggedIn",
+                "true"
+            );
+
+            localStorage.setItem(
+                "bcagRole",
+                "admin"
+            );
+
+            window.location.href =
+                "members.html";
+
+            return;
+        }
+
+
+        // MEMBER
+        if (password === data.members_password) {
+
+            localStorage.setItem(
+                "bcagLoggedIn",
+                "true"
+            );
+
+            localStorage.setItem(
+                "bcagRole",
+                "member"
+            );
+
+            window.location.href =
+                "members.html";
+
+            return;
+        }
+
+
+        // WRONG PASSWORD
+        message.textContent =
+            "Incorrect password. Please try again.";
+
+    } catch (error) {
+
+        message.textContent =
+            "Something went wrong. Please try again.";
+
+    }
+}
+
+
+document
+.getElementById("password")
+.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+        login();
+    }
+
+});
+
+
+checkExistingLogin();
+
+</script>
 
 </body>
 </html>
