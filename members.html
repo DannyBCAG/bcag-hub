@@ -3,77 +3,223 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCAG Members Area</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<title>BCAG Art Group</title>
+
+<link rel="apple-touch-icon"
+href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
+
 <style>
+* {
+    box-sizing: border-box;
+}
+
 body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  background: #f7f1e8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  box-sizing: border-box;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    color: #333;
+    text-align: center;
 }
-.box {
-  background: white;
-  width: 100%;
-  max-width: 500px;
-  padding: 35px 25px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 15px 40px;
 }
+
 .logo {
-  width: 120px;
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin: 5px auto 10px;
+    display: block;
 }
+
 h1 {
-  color: #333;
+    margin: 0 0 20px;
+    font-size: 28px;
 }
-p {
-  color: #666;
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 700px;
+    margin: 0 auto 25px;
 }
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 20px;
-  border: none;
-  border-radius: 10px;
-  background: #333;
-  color: white;
-  font-size: 16px;
+
+.card {
+    border: none;
+    background: white;
+    border-radius: 16px;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.card img {
+    width: 100%;
+    max-width: 150px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+}
+
+.card-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 8px 0 5px;
+}
+
+.admin {
+    display: none;
+    max-width: 500px;
+    margin: 12px auto;
+    padding: 16px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: white;
+    background: #555;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.logout {
+    display: block;
+    max-width: 500px;
+    margin: 12px auto;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    color: white;
+    background: #777;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+@media (min-width: 700px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 </style>
 </head>
+
 <body>
-<div class="box">
-<img class="logo"
-src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
-<h1>Welcome to BCAG</h1>
-<p>You are now logged in.</p>
-<p>This is your private members area.</p>
-<button onclick="logout()">Log Out</button>
+
+<div class="container">
+
+    <img
+        class="logo"
+        src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png"
+        alt="BCAG Art Group"
+    >
+
+    <h1>BCAG Art Group</h1>
+
+    <div class="grid">
+
+        <!-- GALLERY - DO NOT CHANGE -->
+        <a class="card"
+           href="https://script.google.com/macros/s/AKfycbxzk_xkfKdxvFbyfJ49ecoUouJL7I_b4Um8_PTFPruJ-xi71ljoY5DW-tfGXHf11fux/exec"
+           target="_blank">
+
+            <img
+                src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp"
+                alt="Gallery">
+
+            <div class="card-title">Gallery</div>
+        </a>
+
+        <!-- TEMPLATES -->
+        <a class="card" href="templates.html">
+            <img
+                src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp"
+                alt="Templates">
+
+            <div class="card-title">Templates</div>
+        </a>
+
+        <!-- MEMBERS GALLERY -->
+        <a class="card" href="members-gallery.html">
+            <img
+                src="https://i.postimg.cc/W1GV4rjs/806687279-1454810143373747-573763567689125232-n.webp"
+                alt="Members Gallery">
+
+            <div class="card-title">Members Gallery</div>
+        </a>
+
+        <!-- CALENDAR -->
+        <a class="card" href="calendar.html">
+            <img
+                src="https://i.postimg.cc/NLhhsGzr/806515828-1802584224076914-3045022485641698308-n.webp"
+                alt="Calendar">
+
+            <div class="card-title">Calendar</div>
+        </a>
+
+        <!-- ART MATERIALS -->
+        <a class="card" href="materials.html">
+            <img
+                src="https://i.postimg.cc/50T9zVr3/807284902-911269448405387-2529296765882370696-n.webp"
+                alt="Art Materials">
+
+            <div class="card-title">Art Materials</div>
+        </a>
+
+        <!-- NEWS -->
+        <a class="card" href="news.html">
+            <img
+                src="https://i.postimg.cc/VNNzHvQs/news-megaphone-exact-style.png"
+                alt="News">
+
+            <div class="card-title">News</div>
+        </a>
+
+    </div>
+
+    <!-- ADMIN BUTTON - ONLY SHOWN TO ADMIN -->
+    <a id="adminButton" class="admin" href="admin.html">
+        ⚙️ Admin
+    </a>
+
+    <button class="logout" onclick="logout()">
+        Log Out
+    </button>
+
 </div>
+
 <script>
-const SUPABASE_URL = "https://rclomczdigsukcswnnju.supabase.co";
-const SUPABASE_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-async function checkLogin() {
-  const { data } = await supabaseClient.auth.getSession();
-  if (!data.session) {
-    window.location.href = "login.html";
-  }
+
+function checkLogin() {
+
+    const loggedIn = localStorage.getItem("bcagLoggedIn");
+    const role = localStorage.getItem("bcagRole");
+
+    if (loggedIn !== "true") {
+        window.location.href = "index.html";
+        return;
+    }
+
+    if (role === "admin") {
+        document.getElementById("adminButton").style.display = "block";
+    }
 }
-async function logout() {
-  await supabaseClient.auth.signOut();
-  window.location.href = "login.html";
+
+function logout() {
+
+    localStorage.removeItem("bcagLoggedIn");
+    localStorage.removeItem("bcagRole");
+
+    window.location.href = "index.html";
 }
+
 checkLogin();
+
 </script>
+
 </body>
 </html>
