@@ -1,0 +1,15 @@
+function getMaterials() {
+  const sheet = SpreadsheetApp
+    .openById('14bMuA-ilr-yzTNUreRbKQi01uU-yb3q67jFD6jPLqQk')
+    .getSheetByName('Materials');
+
+  const values = sheet.getDataRange().getDisplayValues();
+
+  values.shift(); // Remove "Item" heading
+
+  const materials = values
+    .map(row => row[0])
+    .filter(item => item.trim() !== '');
+
+  return materials;
+}
