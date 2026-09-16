@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BCAG Admin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f1e8;
+    color: #333;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.box {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    margin-bottom: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 0;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin-top: 7px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #333;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.home {
+    background: #777;
+}
+
+.message {
+    text-align: center;
+    margin-top: 15px;
+    min-height: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="box">
+
+        <h1>BCAG Admin</h1>
+
+        <p>
+            Welcome to the BCAG administration area.
+        </p>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>Change Members Password</h2>
+
+        <label for="membersPassword">
+            New Members Password
+        </label>
+
+        <input
+            id="membersPassword"
+            type="password"
+            placeholder="Enter new Members password"
+        >
+
+        <button onclick="changeMembersPassword()">
+            Save Members Password
+        </button>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>Change Admin Password</h2>
+
+        <label for="adminPassword">
+            New Admin Password
+        </label>
+
+        <input
+            id="adminPassword"
+            type="password"
+            placeholder="Enter new Admin password"
+        >
+
+        <button onclick="changeAdminPassword()">
+            Save Admin Password
+        </button>
+
+    </div>
+
+
+    <div class="box">
+
+        <button class="home" onclick="goHome()">
+            ← Back to Home
+        </button>
+
+        <button class="home" onclick="logout()">
+            Log Out
+        </button>
+
+    </div>
+
+    <div id="message" class="message"></div>
+
+</div>
+
+
+<script>
+
+const DB_URL =
+"https://rclomczdigsukcswnnju.supabase.co";
+
+const DB_KEY =
+"sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
+
+const BCAG_DATABASE =
+window.supabase.createClient(
+    DB_URL,
+    DB_KEY
+);
+
+
+// Only Admin can enter this page
+function checkAdmin() {
+
+    const loggedIn =
+        localStorage.getItem("bcagLoggedIn");
+
+    const role =
+        localStorage.getItem("bcagRole");
+
+    if (loggedIn !== "true" || role !== "admin") {
+
+        window.location.href = "index.html";
+
+        return false;
+    }
+
+    return true;
+}
+
+
+// Change Members password
+async function changeMembersPassword() {
+
+    const newPassword =
+        document.getElementById("membersPassword").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = "";
+
+    if (!newPassword) {
+
+        message.textContent =
+            "Please enter a new Members password.";
+
+        return;
+    }
+
+    const result =
+        await BCAG_DATABASE
+        .from("app_settings")
+        .update({
+            members_password: newPassword
+        })
+        .eq("id", 1);
+
+    if (result.error) {
+
+        message.textContent =
+            result.error.message;
+
+        return;
+    }
+
+    document.getElementById(
+        "membersPassword"
+    ).value = "";
+
+    message.textContent =
+        "Members password changed successfully.";
+}
+
+
+// Change Admin password
+async function changeAdminPassword() {
+
+    const newPassword =
+        document.getElementById("adminPassword").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = "";
+
+    if (!newPassword) {
+
+        message.textContent =
+            "Please enter a new Admin password.";
+
+        return;
+    }
+
+    const result =
+        await BCAG_DATABASE
+        .from("app_settings")
+        .update({
+            admin_password: newPassword
+        })
+        .eq("id", 1);
+
+    if (result.error) {
+
+        message.textContent =
+            result.error.message;
+
+        return;
+    }
+
+    document.getElementById(
+        "adminPassword"
+    ).value = "";
+
+    message.textContent =
+        "Admin password changed successfully.";
+}
+
+
+// Home
+function goHome() {
+
+    window.location.href =
+        "members.html";
+}
+
+
+// Logout
+function logout() {
+
+    localStorage.removeItem("bcagLoggedIn");
+    localStorage.removeItem("bcagRole");
+
+    window.location.href =
+        "index.html";
+}
+
+
+checkAdmin();
+
+</script>
+
+</body>
+</html>
