@@ -6,6 +6,8 @@
 
 <title>BCAG Art Group Login</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <link rel="apple-touch-icon"
 href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
 
@@ -115,26 +117,20 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
 
-const supabaseClient =
-window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
 
-
-// If already logged in, go straight to Home
 function checkExistingLogin() {
 
-    const loggedIn =
-        localStorage.getItem("bcagLoggedIn");
+    const loggedIn = localStorage.getItem("bcagLoggedIn");
 
     if (loggedIn === "true") {
         window.location.href = "members.html";
     }
 }
 
-
-// Login
 async function login() {
 
     const password =
@@ -146,7 +142,8 @@ async function login() {
     message.textContent = "";
 
     if (!password) {
-        message.textContent = "Please enter your password.";
+        message.textContent =
+            "Please enter your password.";
         return;
     }
 
@@ -160,13 +157,12 @@ async function login() {
             .single();
 
         if (error) {
+            console.error(error);
             message.textContent =
-                "Unable to connect. Please try again.";
+                error.message;
             return;
         }
 
-
-        // ADMIN
         if (password === data.admin_password) {
 
             localStorage.setItem(
@@ -185,8 +181,6 @@ async function login() {
             return;
         }
 
-
-        // MEMBER
         if (password === data.members_password) {
 
             localStorage.setItem(
@@ -205,21 +199,19 @@ async function login() {
             return;
         }
 
-
-        // WRONG PASSWORD
         message.textContent =
             "Incorrect password. Please try again.";
 
-} catch (error) {
+    } catch (error) {
 
-    console.error(error);
+        console.error(error);
 
-message.textContent =
-    error.message || "Unable to check password.";
+        message.textContent =
+            error.message ||
+            "Unable to check password.";
 
+    }
 }
-}
-
 
 document
 .getElementById("password")
@@ -230,7 +222,6 @@ document
     }
 
 });
-
 
 checkExistingLogin();
 
