@@ -13,8 +13,6 @@
 
 <title>BCAG Art Group Login</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 * {
     box-sizing: border-box;
@@ -112,17 +110,13 @@ button {
 </div>
 
 <script>
+
 if (localStorage.getItem("bcagLoggedIn") === "true") {
     window.location.href = "members.html";
 }
-const DB_URL = "https://rclomczdigsukcswnnju.supabase.co";
 
-const DB_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
-
-const BCAG_DATABASE = window.supabase.createClient(
-    DB_URL,
-    DB_KEY
-);
+const API_URL =
+"https://script.google.com/macros/s/AKfycbwLBxwXYDNvOsfmLOYfMYYrDY7fuAaRS1Aw2szqVH6azYIYi8Q_o9mW7R70jouG45Kk/exec";
 
 function doLogin() {
 
@@ -149,26 +143,16 @@ async function checkPassword(enteredPassword) {
 
     try {
 
+        const url =
+            API_URL + "?password=" + encodeURIComponent(enteredPassword);
+
+        const response =
+            await fetch(url);
+
         const result =
-            await BCAG_DATABASE
-            .from("app_settings")
-            .select("members_password, admin_password")
-            .eq("id", 1)
-            .single();
+            await response.json();
 
-        if (result.error) {
-
-            console.error(result.error);
-
-            message.textContent =
-                result.error.message;
-
-            return;
-        }
-
-        const settings = result.data;
-
-        if (enteredPassword === settings.admin_password) {
+        if (result.role === "admin") {
 
             localStorage.setItem("bcagLoggedIn", "true");
             localStorage.setItem("bcagRole", "admin");
@@ -178,7 +162,7 @@ async function checkPassword(enteredPassword) {
             return;
         }
 
-        if (enteredPassword === settings.members_password) {
+        if (result.role === "member") {
 
             localStorage.setItem("bcagLoggedIn", "true");
             localStorage.setItem("bcagRole", "member");
@@ -196,7 +180,7 @@ async function checkPassword(enteredPassword) {
         console.error(problem);
 
         message.textContent =
-            problem.message || "Unable to check password.";
+            "Unable to check password. Please try again.";
 
     }
 }
