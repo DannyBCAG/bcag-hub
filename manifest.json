@@ -1,0 +1,15 @@
+{
+  "name": "BCAG Art Group",
+  "short_name": "BCAG",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f7f1e8",
+  "theme_color": "#f7f1e8",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
