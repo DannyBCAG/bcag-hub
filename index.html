@@ -112,7 +112,9 @@ button {
 </div>
 
 <script>
-
+if (localStorage.getItem("bcagLoggedIn") === "true") {
+    window.location.href = "members.html";
+}
 const DB_URL = "https://rclomczdigsukcswnnju.supabase.co";
 
 const DB_KEY = "sb_publishable_4rPNlWAWyjl-969TZ7C64g_SzY86As2";
