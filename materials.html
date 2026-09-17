@@ -28,6 +28,28 @@ body {
     margin: auto;
 }
 
+.intro-note {
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
+    font-size: 16px;
+}
+
+.category-heading {
+    background: #e8ded0;
+    color: #5a4a3a;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin: 20px 0 10px 0;
+}
+
+.category-heading:first-of-type {
+    margin-top: 0;
+}
+
 .material {
     background: white;
     margin-bottom: 10px;
@@ -59,6 +81,9 @@ body {
 
 const MATERIALS_URL = "https://script.google.com/macros/s/AKfycbzSpNjzeTOGuzHLX2HMflGQGWJzgpaL9blzbgxcM6HATNyY3x2X0c6ISu41N74Bx0dz/exec";
 
+// The order categories should appear in
+const CATEGORY_ORDER = ["Paper", "Paint", "Brushes", "Pens and pencils", "Miscellaneous"];
+
 fetch(MATERIALS_URL, {
     mode: "cors"
 })
@@ -66,17 +91,56 @@ fetch(MATERIALS_URL, {
 .then(data => {
 
     const container = document.getElementById("materials");
-
     container.innerHTML = "";
 
-    data.forEach(item => {
+    // Intro note at the top
+    const intro = document.createElement("div");
+    intro.className = "intro-note";
+    intro.textContent = "These are my recommended watercolour materials and pretty much what I use.";
+    container.appendChild(intro);
 
-        const card = document.createElement("div");
+    // Group items by category
+    const groups = {};
 
-        card.className = "material";
-        card.textContent = item;
+    data.forEach(row => {
+        let itemText, category;
 
-        container.appendChild(card);
+        if (typeof row === "string") {
+            itemText = row;
+            category = "Miscellaneous";
+        } else {
+            itemText = row.Item || row.item || "";
+            category = row.Category || row.category || "Miscellaneous";
+        }
+
+        if (!groups[category]) {
+            groups[category] = [];
+        }
+        groups[category].push(itemText);
+    });
+
+    // Work out the order: named categories first (in the order given),
+    // then any other categories not in the list, alphabetically
+    const allCategories = Object.keys(groups);
+    const orderedCategories = CATEGORY_ORDER.filter(cat => allCategories.includes(cat));
+    const extraCategories = allCategories
+        .filter(cat => !CATEGORY_ORDER.includes(cat))
+        .sort();
+    const finalOrder = orderedCategories.concat(extraCategories);
+
+    // Render each group with its heading
+    finalOrder.forEach(category => {
+        const heading = document.createElement("div");
+        heading.className = "category-heading";
+        heading.textContent = category;
+        container.appendChild(heading);
+
+        groups[category].forEach(itemText => {
+            const card = document.createElement("div");
+            card.className = "material";
+            card.textContent = itemText;
+            container.appendChild(card);
+        });
     });
 
 })
