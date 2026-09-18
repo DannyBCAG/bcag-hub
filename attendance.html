@@ -1,96 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Attendance - BCAG</title>
+<title>Attendance</title>
 <style>
-body{font-family:Arial,sans-serif;font-size:22px;line-height:1.6;padding:24px;max-width:680px;margin:0 auto;background:#fff}
-h1{font-size:40px;color:#144FA3;margin:10px 0 5px 0}
-.topmsg{background:#f0f5ff;border:2px solid #144FA3;border-radius:15px;padding:22px;margin:20px 0 30px 0;font-size:22px}
-.namebox{background:#fff;border:2px solid #ddd;border-radius:15px;padding:22px;margin-bottom:30px}
-.namebox input{font-size:22px;padding:16px;width:100%;border-radius:12px;border:2px solid #144FA3;box-sizing:border-box;margin-top:12px}
-.row{background:#f9f9f9;border:1px solid #e5e5e5;border-radius:18px;padding:22px;margin-bottom:18px}
-.date{font-size:21px;font-weight:800;margin-bottom:14px}
-.btns{display:flex;gap:14px}
-.btns button{flex:1;padding:18px 10px;border-radius:30px;border:none;font-size:20px;font-weight:800}
-.b-blue{background:#144FA3;color:white}
-.b-green{background:#2E9E44;color:white}
-.b-red{background:#D92D20;color:white}
-.b-grey{background:#e6e6e6;color:#777}
-.home{width:100%;margin-top:40px;padding:22px;font-size:22px;font-weight:800;background:#144FA3;color:white;border-radius:15px;border:none}
+body{font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:700px;margin:0 auto;padding:16px;background:#fff}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.back{color:#144FA3;text-decoration:none;font-size:14px}
+h1{color:#144FA3;font-size:22px;margin:0;font-weight:900}
+.input{width:100%;padding:16px;border:2px solid #D6E3FF;border-radius:12px;font-size:18px}
+.help{font-size:12px;color:#666;margin-top:6px}
+.dateLabel{color:#144FA3;font-weight:900;margin:18px 0 8px;font-size:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.btn{height:56px;border-radius:12px;border:none;font-weight:800;font-size:15px;background:#144FA3;color:#fff}
+.btn.coming{background:#1FA971}
+.btn.cant{background:#D93F3F}
+.homeBtn{width:100%;height:64px;border-radius:16px;background:#144FA3;color:#fff;font-weight:900;font-size:18px;border:none;margin-top:24px}
+.saved{background:#E8F8F0;border:1px solid #C7EAD9;border-radius:12px;padding:12px;margin-top:12px}
 </style>
 </head>
 <body>
-
-<h1>Attendance</h1>
-<div class="topmsg">
-<b>Please indicate your attendance</b><br>
-Classes start Wednesday 6th January 2027.<br>
-Tap Coming or Can't Come for each week.
+<div class="top"><a class="back" href="index.html">← Home</a><h1>Attendance</h1></div>
+<div id="nameArea">
+<p style="font-size:14px">Enter your name once — we remember it</p>
+<input id="nameInput" class="input" placeholder="D Collier">
+<div class="help">Initial + surname e.g. D Collier — you only need to do this once</div>
 </div>
-
-<div class="namebox" id="nameBox"></div>
-<div id="list"></div>
-<button class="home" onclick="window.location.href='members.html'">← Back to Home</button>
-
+<div id="savedArea" style="display:none"></div>
+<div id="dates"></div>
+<button id="homeBtn" class="homeBtn">Home</button>
 <script>
-var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
-var dates = [
-  ["2027-01-06","Wednesday 6th January 2027"],
-  ["2027-01-13","Wednesday 13th January 2027"],
-  ["2027-01-20","Wednesday 20th January 2027"],
-  ["2027-01-27","Wednesday 27th January 2027"],
-  ["2027-02-03","Wednesday 3rd February 2027"],
-  ["2027-02-10","Wednesday 10th February 2027"],
-  ["2027-02-17","Wednesday 17th February 2027"],
-  ["2027-02-24","Wednesday 24th February 2027"],
-  ["2027-03-03","Wednesday 3rd March 2027"],
-  ["2027-03-10","Wednesday 10th March 2027"],
-  ["2027-03-17","Wednesday 17th March 2027"],
-  ["2027-03-24","Wednesday 24th March 2027"]
-];
-var myName = localStorage.getItem('attendance_name') || '';
-var myChoices = {};
-try{ myChoices = JSON.parse(localStorage.getItem('attendance_choices')||'{}'); }catch(e){}
-function renderName(){
-  var box = document.getElementById('nameBox');
-  if(myName){
-    box.innerHTML = "You are: <b>"+myName+"</b><br><br><a href='#' onclick='changeName();return false;' style='color:#144FA3;font-weight:bold'>Change name</a>";
-  }else{
-    box.innerHTML = "Enter your name once:<br><input id='nameInput' placeholder='D Collier'><br><br><button class='b-blue' style='width:100%' onclick='saveName()'>Save Name</button>";
-  }
-}
-function renderList(){
-  var out = "";
-  for(var i=0;i<dates.length;i++){
-    var iso = dates[i][0];
-    var pretty = dates[i][1];
-    var choice = myChoices[iso] || '';
-    var cClass = "b-blue";
-    var nClass = "b-blue";
-    if(choice==="coming"){ cClass="b-green"; nClass="b-grey"; }
-    if(choice==="cant"){ cClass="b-grey"; nClass="b-red"; }
-    out += "<div class='row'><div class='date'>"+pretty+"</div><div class='btns'><button class='"+cClass+"' onclick=\"choose('"+iso+"','coming')\">Coming</button><button class='"+nClass+"' onclick=\"choose('"+iso+"','cant')\">Can't Come</button></div></div>";
-  }
-  document.getElementById('list').innerHTML = out;
-}
-function saveName(){
-  var v = document.getElementById('nameInput').value.trim();
-  if(!v){ alert('Please type your name'); return; }
-  myName = v;
-  localStorage.setItem('attendance_name', myName);
-  renderName(); renderList();
-}
-function changeName(){localStorage.removeItem('attendance_name');myName='';renderName();renderList();}
-function choose(date,status){
-  if(!myName){ alert('Please enter your name first'); return; }
-  myChoices[date]=status;
-  localStorage.setItem('attendance_choices', JSON.stringify(myChoices));
-  renderList();
-  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({name:myName,date:date,status:status})});
-}
-renderName();renderList();
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
+function toISO(d){var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
+function fmt(d){var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return 'Wed '+d.getDate()+' '+months[d.getMonth()]+' — Blackies 1-4pm';}
+function next4Weds(){var t=new Date();t.setHours(0,0,0,0);var off=(3-t.getDay()+7)%7;var f=new Date(t);f.setDate(t.getDate()+off);return Array.from({length:4},function(_,i){var d=new Date(f);d.setDate(f.getDate()+i*7);return d;});}
+var weds=next4Weds();
+var name=localStorage.getItem("wc_name")||"";
+var att={};try{att=JSON.parse(localStorage.getItem("wc_attendance")||"{}");}catch(e){}
+var nameInput=document.getElementById("nameInput");
+var nameArea=document.getElementById("nameArea");
+var savedArea=document.getElementById("savedArea");
+var datesDiv=document.getElementById("dates");
+function renderName(){if(name){nameArea.style.display="none";savedArea.style.display="block";savedArea.innerHTML='<div class="saved"><div>You are: <b>'+name+'</b> ✓</div><div style="font-size:12px;color:#444;margin-top:4px">Name saved — next time you won\'t need to type it.</div><div style="margin-top:8px"><a href="#" id="changeLink" style="color:#144FA3;font-size:13px">Not you? Change name</a></div></div>';document.getElementById("changeLink").onclick=function(e){e.preventDefault();localStorage.removeItem("wc_name");name="";nameArea.style.display="block";savedArea.style.display="none";nameInput.focus();};}else{nameArea.style.display="block";savedArea.style.display="none";}}
+function renderDates(){datesDiv.innerHTML="";weds.forEach(function(d){var iso=toISO(d);var div=document.createElement("div");div.innerHTML='<div class="dateLabel">'+fmt(d)+'</div><div class="row"><button class="btn '+(att[iso]=='coming'?'coming':'')+'" data-iso="'+iso+'" data-val="coming">Coming</button><button class="btn '+(att[iso]=='cant'?'cant':'')+'" data-iso="'+iso+'" data-val="cant">Can\'t Come</button></div>';datesDiv.appendChild(div);});datesDiv.querySelectorAll("button").forEach(function(b){b.onclick=function(){var iso=b.dataset.iso;var val=b.dataset.val;att[iso]=val;localStorage.setItem("wc_attendance",JSON.stringify(att));renderDates();};});}
+nameInput.value=name;
+nameInput.addEventListener("input",function(){var v=nameInput.value.trim();if(v){name=v;localStorage.setItem("wc_name",v);renderName();}});
+renderName();renderDates();
+document.getElementById("homeBtn").onclick=function(){var n=(localStorage.getItem("wc_name")||nameInput.value||"").trim();if(!n){alert("Please enter your name e.g. D Collier");nameInput.focus();return;}localStorage.setItem("wc_name",n);var payload={name:n,attendance:att,timestamp:new Date().toISOString()};try{var raw=localStorage.getItem("wc_all_submissions");var all=raw?JSON.parse(raw):[];if(!Array.isArray(all))all=[];var idx=all.findIndex(function(s){return s.name.toLowerCase()===n.toLowerCase();});if(idx>=0)all[idx]=payload;else all.push(payload);localStorage.setItem("wc_all_submissions",JSON.stringify(all));}catch(e){}try{if(GOOGLE_SHEET_URL){fetch(GOOGLE_SHEET_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(payload)});}}catch(e){}window.location.href="index.html";};
 </script>
 </body>
 </html>
