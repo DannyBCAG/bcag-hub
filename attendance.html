@@ -1,1 +1,57 @@
-<html><body><h1>Hello Dan - test works</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendance</title>
+<style>
+body{font-family:Arial;font-size:24px;line-height:2;padding:30px}
+h1{font-size:32px}
+.row{padding:30px 0;border-bottom:2px solid #ccc}
+button{font-size:22px;padding:15px 25px;border-radius:30px;border:none;background:#144FA3;color:white;margin:10px 10px 10px 0}
+</style>
+</head>
+<body>
+
+<h1>Attendance</h1>
+<p>Starts Wednesday 6th January 2027</p>
+
+<div class="row">
+<b>Wednesday 6th January 2027</b><br>
+<button onclick="send('2027-01-06','coming')">Coming</button>
+<button onclick="send('2027-01-06','cant')">Can't Come</button>
+</div>
+
+<div class="row">
+<b>Wednesday 13th January 2027</b><br>
+<button onclick="send('2027-01-13','coming')">Coming</button>
+<button onclick="send('2027-01-13','cant')">Can't Come</button>
+</div>
+
+<div class="row">
+<b>Wednesday 20th January 2027</b><br>
+<button onclick="send('2027-01-20','coming')">Coming</button>
+<button onclick="send('2027-01-20','cant')">Can't Come</button>
+</div>
+
+<div class="row">
+<b>Wednesday 27th January 2027</b><br>
+<button onclick="send('2027-01-27','coming')">Coming</button>
+<button onclick="send('2027-01-27','cant')">Can't Come</button>
+</div>
+
+<script>
+var URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
+var myName = localStorage.getItem('attendance_name');
+if(!myName){
+  myName = prompt("Enter your name:");
+  localStorage.setItem('attendance_name', myName);
+}
+function send(date,status){
+  fetch(URL,{method:'POST',mode:'no-cors',body:JSON.stringify({name:myName,date:date,status:status})});
+  alert(myName + " - " + status + " on " + date);
+}
+</script>
+
+</body>
+</html>
