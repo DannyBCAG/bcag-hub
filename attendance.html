@@ -3,54 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Attendance</title>
+<title>Attendance - BCAG</title>
 <style>
-body{font-family:Arial;font-size:24px;line-height:2;padding:30px}
-h1{font-size:32px}
-.row{padding:30px 0;border-bottom:2px solid #ccc}
-button{font-size:22px;padding:15px 25px;border-radius:30px;border:none;background:#144FA3;color:white;margin:10px 10px 10px 0}
+body{
+  font-family:Arial,sans-serif;
+  font-size:22px;
+  line-height:1.8;
+  padding:25px;
+  max-width:700px;
+  margin:0 auto;
+  background:white;
+}
+h1{font-size:38px;color:#144FA3;margin-bottom:10px}
+.sub{font-size:20px;color:#555;margin-bottom:40px}
+.name-box{background:#f0f5ff;padding:25px;border-radius:15px;margin-bottom:40px;border:2px solid #144FA3}
+.row{background:#f9f9f9;padding:25px;border-radius:15px;margin-bottom:20px;border:1px solid #e0e0e0}
+.date{font-size:22px;font-weight:bold;margin-bottom:15px}
+.btns{display:flex;gap:15px}
+.btns button{flex:1;font-size:20px;padding:18px;border-radius:30px;border:none;font-weight:bold}
+.coming{background:#144FA3;color:white}
+.cant{background:#e0e0e0;color:#333}
+.coming.active{background:#2E9E44}
+.cant.active{background:#D92D20;color:white}
+.home{margin-top:50px;width:100%;padding:22px;font-size:22px;background:#144FA3;color:white;border-radius:15px;border:none}
 </style>
 </head>
 <body>
 
 <h1>Attendance</h1>
-<p>Starts Wednesday 6th January 2027</p>
+<div class="sub">Classes start Wednesday 6th January 2027</div>
 
-<div class="row">
-<b>Wednesday 6th January 2027</b><br>
-<button onclick="send('2027-01-06','coming')">Coming</button>
-<button onclick="send('2027-01-06','cant')">Can't Come</button>
-</div>
+<div class="name-box" id="nameBox"></div>
 
-<div class="row">
-<b>Wednesday 13th January 2027</b><br>
-<button onclick="send('2027-01-13','coming')">Coming</button>
-<button onclick="send('2027-01-13','cant')">Can't Come</button>
-</div>
+<div id="list"></div>
 
-<div class="row">
-<b>Wednesday 20th January 2027</b><br>
-<button onclick="send('2027-01-20','coming')">Coming</button>
-<button onclick="send('2027-01-20','cant')">Can't Come</button>
-</div>
-
-<div class="row">
-<b>Wednesday 27th January 2027</b><br>
-<button onclick="send('2027-01-27','coming')">Coming</button>
-<button onclick="send('2027-01-27','cant')">Can't Come</button>
-</div>
+<button class="home" onclick="window.location.href='members.html'">← Back to Home</button>
 
 <script>
-var URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
-var myName = localStorage.getItem('attendance_name');
-if(!myName){
-  myName = prompt("Enter your name:");
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
+var dates = [
+  ["2027-01-06","Wednesday 6th January 2027"],
+  ["2027-01-13","Wednesday 13th January 2027"],
+  ["2027-01-20","Wednesday 20th January 2027"],
+  ["2027-01-27","Wednesday 27th January 2027"],
+  ["2027-02-03","Wednesday 3rd February 2027"],
+  ["2027-02-10","Wednesday 10th February 2027"],
+  ["2027-02-17","Wednesday 17th February 2027"],
+  ["2027-02-24","Wednesday 24th February 2027"],
+  ["2027-03-03","Wednesday 3rd March 2027"],
+  ["2027-03-10","Wednesday 10th March 2027"],
+  ["2027-03-17","Wednesday 17th March 2027"],
+  ["2027-03-24","Wednesday 24th March 2027"]
+];
+var myName = localStorage.getItem('attendance_name') || '';
+var myChoices = {};
+try{ myChoices = JSON.parse(localStorage.getItem('attendance_choices')||'{}'); }catch(e){}
+function renderName(){
+  var box = document.getElementById('nameBox');
+  if(myName){
+    box.innerHTML = "You are: <b>"+myName+"</b> <br><br><a href='#' onclick='changeName();return false;' style='color:#144FA3'>Change name</a>";
+  } else {
+    box.innerHTML = "Enter your name once:<br><input id='nameInput' style='font-size:22px;padding:15px;width:100%;margin:15px 0;border-radius:12px;border:2px solid #144FA3;box-sizing:border-box' placeholder='D Collier'><br><button class='coming' style='width:100%' onclick='saveName()'>Save Name</button>";
+  }
+}
+function renderList(){
+  var html = "";
+  for(var i=0;i<dates.length;i++){
+    var iso = dates[i][0];
+    var pretty = dates[i][1];
+    var choice = myChoices[iso] || '';
+    var comingClass = choice==='coming'? 'coming active' : 'coming';
+    var cantClass = choice==='cant'? 'cant active' : 'cant';
+    html += "<div class='row'><div class='date'>"+pretty+"</div><div class='btns'><button class='"+comingClass+"' onclick='choose(\\'"+iso+"\\',\\'coming\\')'>Coming</button><button class='"+cantClass+"' onclick='choose(\\'"+iso+"\\',\\'cant\\')'>Can't Come</button></div></div>";
+  }
+  document.getElementById('list').innerHTML = html;
+}
+function saveName(){
+  var v = document.getElementById('nameInput').value.trim();
+  if(!v) return;
+  myName = v;
   localStorage.setItem('attendance_name', myName);
+  renderName();renderList();
 }
-function send(date,status){
-  fetch(URL,{method:'POST',mode:'no-cors',body:JSON.stringify({name:myName,date:date,status:status})});
-  alert(myName + " - " + status + " on " + date);
+function changeName(){localStorage.removeItem('attendance_name');myName='';renderName();renderList();}
+function choose(date,status){
+  if(!myName){ alert('Please enter your name first'); return; }
+  myChoices[date]=status;
+  localStorage.setItem('attendance_choices', JSON.stringify(myChoices));
+  renderList();
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({name:myName,date:date,status:status})});
 }
+renderName();renderList();
 </script>
 
 </body>
