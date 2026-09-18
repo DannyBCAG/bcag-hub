@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>This weeks numbers</title>
+<style>
+body{font-family:-apple-system,system-ui,sans-serif;max-width:700px;margin:0 auto;padding:16px;background:#fff}
+.top{display:flex;align-items:center;gap:12px}
+.back{color:#144FA3;text-decoration:none;font-size:14px}
+.iconWrap{display:flex;justify-content:center;margin:18px 0}
+.icon{width:160px;height:160px;border-radius:50%;overflow:hidden;border:3px solid #D6E3FF}
+.icon img{width:100%;height:100%;object-fit:cover}
+h1{color:#144FA3;font-size:24px;font-weight:900;text-align:center;margin:0}
+.badge{display:inline-block;background:#F5F8FF;border:1px solid #D6E3FF;color:#144FA3;font-weight:800;border-radius:999px;padding:6px 12px;font-size:13px}
+.big{width:100%;min-height:90px;border-radius:20px;background:#144FA3;color:#fff;border:none;text-align:left;padding:18px 22px;margin-top:18px}
+.big span.num{font-size:48px;font-weight:900;line-height:1;margin-right:12px}
+.big span.lbl{font-size:18px;font-weight:800}
+.card{border:1px solid #E5E7EB;border-radius:12px;background:#fff;padding:12px 16px;display:flex;justify-content:space-between;margin-top:8px}
+.small{color:#6B7280;font-size:13px;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="top"><a class="back" href="index.html">← Home</a></div>
+<div class="iconWrap"><div class="icon"><img src="five-heads-icon.png"></div></div>
+<h1>This weeks numbers</h1>
+<div style="text-align:center;margin-top:12px"><span id="forBadge" class="badge"></span><div id="isoLine" style="font-size:11px;color:#999;margin-top:6px;font-family:monospace"></div></div>
+<button id="bigBtn" class="big"><span class="num" id="num">0</span><span class="lbl">Coming — Tap to see list</span><span style="float:right;opacity:.7;font-size:20px" id="plus">+</span></button>
+<div id="comingList"></div>
+<div class="small"><button id="cantBtn" style="border:none;background:none;color:#6B7280;font-size:13px"><b id="cantNum">0</b> Can't Come <span id="cantArrow">▼</span></button></div>
+<div id="cantList"></div>
+<div style="margin-top:32px;background:#F9FAFB;border:1px solid #F3F4F6;border-radius:12px;padding:14px;text-align:center;color:#6B7280;font-size:12px">Sheet auto-deletes after 4 weeks - you keep 3 weeks for money checks. Rolls every Thursday.</div>
+<script>
+function toISO(d){var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
+function fmt(d){var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return 'Wed '+d.getDate()+' '+months[d.getMonth()]+' — Blackies 1-4pm';}
+function rolloverWed(){var now=new Date();now.setHours(0,0,0,0);var day=now.getDay();var d=new Date(now);if(day===0)d.setDate(now.getDate()+3);else if(day>=1&&day<=3)d.setDate(now.getDate()+(3-day));else d.setDate(now.getDate()+(3-day+7));return d;}
+var rw=rolloverWed();var iso=toISO(rw);
+document.getElementById("forBadge").textContent="For: "+fmt(rw);
+document.getElementById("isoLine").textContent=iso+" • rollover Thu";
+function getSubs(){try{var raw=localStorage.getItem("wc_all_submissions");return raw?JSON.parse(raw):[];}catch(e){return[];}}
+var subs=getSubs();
+var coming=subs.filter(function(s){return (s.attendance&&s.attendance[iso]||'').toLowerCase()==='coming';}).sort(function(a,b){return a.name.localeCompare(b.name);});
+var cant=subs.filter(function(s){var v=(s.attendance&&s.attendance[iso]||'').toLowerCase();return v==='cant'||v.indexOf('cant')>=0;}).sort(function(a,b){return a.name.localeCompare(b.name);});
+document.getElementById("num").textContent=coming.length;
+document.getElementById("cantNum").textContent=cant.length;
+var showC=false,showCant=false;
+document.getElementById("bigBtn").onclick=function(){showC=!showC;document.getElementById("plus").textContent=showC?"−":"+";renderComing();};
+document.getElementById("cantBtn").onclick=function(){showCant=!showCant;document.getElementById("cantArrow").textContent=showCant?"▲":"▼";renderCant();};
+function renderComing(){var div=document.getElementById("comingList");div.innerHTML="";if(!showC)return;if(coming.length===0){div.innerHTML='<div class="card" style="justify-content:center;color:#999;font-size:13px">No one marked coming yet</div>';return;}coming.forEach(function(s){var el=document.createElement("div");el.className="card";el.innerHTML='<span style="font-weight:600;font-size:14px">'+s.name+'</span><span style="font-size:11px;font-weight:800;color:#1FA971;background:#E8F8F0;padding:4px 8px;border-radius:999px">COMING</span>';div.appendChild(el);});}
+function renderCant(){var div=document.getElementById("cantList");div.innerHTML="";if(!showCant)return;if(cant.length===0){div.innerHTML='<div class="card" style="justify-content:center;color:#aaa;background:#F9FAFB">No can\'t-comes</div>';return;}cant.forEach(function(s){var el=document.createElement("div");el.className="card";el.innerHTML='<span style="font-weight:500;font-size:14px;color:#555">'+s.name+'</span><span style="font-size:11px;font-weight:800;color:#D93F3F;background:#FDE8E8;padding:4px 8px;border-radius:999px">CAN\'T</span>';div.appendChild(el);});}
+</script>
+</body>
+</html>
