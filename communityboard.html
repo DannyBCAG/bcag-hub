@@ -26,24 +26,41 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     font-size: 17px;
     line-height: 1.4;
-    padding-bottom: 110px; /* room for the blue bar at the bottom */
+    padding-bottom: 120px; /* room for the blue bar at the bottom */
   }
 
-  .top { padding: calc(env(safe-area-inset-top, 0px) + 24px) 18px 4px; position: relative; z-index: 5; }
+  /* extra space at the top keeps the Back link clear of the clock and battery strip */
+  .top { padding: calc(env(safe-area-inset-top, 0px) + 40px) 18px 4px; }
   .back {
-    background: none;
-    border: 0;
-    font: inherit;
+    display: inline-block;
     color: var(--blue-dark);
     font-weight: 700;
+    text-decoration: none;
     padding: 12px 24px 12px 0;
-    min-height: 44px;
     touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    cursor: pointer;
   }
   h1 { margin: 2px 0 2px; font-size: 28px; }
-  .intro { margin: 0 0 12px; color: var(--soft); font-size: 15px; }
+  .intro { margin: 0 0 8px; color: var(--soft); font-size: 15px; }
+
+  .note {
+    max-width: 640px;
+    margin: 0 auto 8px;
+    padding: 0 18px;
+    text-align: center;
+    color: var(--soft);
+    font-size: 14px;
+  }
+  .note:empty { display: none; }
+  .note button {
+    background: var(--blue);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 14px;
+    margin-left: 6px;
+  }
+  .note .detail { font-size: 12px; margin-top: 6px; overflow-wrap: anywhere; }
 
   .list { padding: 0 14px; max-width: 640px; margin: 0 auto; }
 
@@ -59,6 +76,7 @@
   .post.event   { border-left-color: var(--event); }
   .post.shoutout { border-left-color: var(--shout); }
   .post.chat    { border-left-color: var(--chat); }
+  .post.sending { opacity: 0.65; }
 
   .tag { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
   .event .tag    { color: var(--event); }
@@ -90,16 +108,6 @@
   }
 
   .status { text-align: center; color: var(--soft); padding: 30px 20px; }
-  .status button {
-    margin-top: 10px;
-    background: var(--blue);
-    color: #fff;
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 22px;
-    font-size: 16px;
-  }
-  .status .detail { font-size: 12px; margin-top: 14px; overflow-wrap: anywhere; }
 
   /* ---------- BLUE BAR AT THE BOTTOM ---------- */
   .bar {
@@ -108,16 +116,27 @@
     background: var(--blue);
     border-radius: 26px 26px 0 0;
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  .bar button, .bar .home {
+    font-weight: 700;
+    font-size: 17px;
+    border-radius: 999px;
+    padding: 12px 24px;
+    touch-action: manipulation;
   }
   .bar button {
     background: #fff;
     color: var(--blue-dark);
-    font-weight: 700;
-    font-size: 17px;
-    border: 0;
-    border-radius: 999px;
-    padding: 12px 28px;
+    border: 2px solid #fff;
+  }
+  .bar .home {
+    color: #fff;
+    text-decoration: none;
+    border: 2px solid rgba(255, 255, 255, 0.75);
   }
 
   /* ---------- POST FORM (slides up over the page) ---------- */
@@ -187,7 +206,6 @@
   }
   .actions .cancel { background: #ece6f7; color: var(--ink); }
   .actions .send   { background: var(--blue); color: #fff; }
-  .actions .send:disabled { opacity: 0.6; }
 
   .hidden { display: none; }
 </style>
@@ -195,17 +213,18 @@
 <body>
 
 <div class="top">
-  <button type="button" class="back" id="backBtn">&larr; Back</button>
+  <a class="back" href="members.html">&larr; Back</a>
   <h1>Community Board</h1>
   <p class="intro">Events, shout-outs and chat from the group.</p>
 </div>
 
-<div class="list" id="list">
-  <div class="status">Loading&hellip;</div>
-</div>
+<div class="note" id="note"></div>
+
+<div class="list" id="list"></div>
 
 <div class="bar">
-  <button id="openForm">+ Post something</button>
+  <a class="home" href="members.html">&larr; Home</a>
+  <button type="button" id="openForm">+ Post something</button>
 </div>
 
 <!-- The form -->
@@ -252,6 +271,7 @@
      ===================================================== */
   // The web address of the "BCAG Community" Apps Script
   var COMMUNITY_URL = "https://script.google.com/macros/s/AKfycbz-LcTRsfi-ER4H8m2TaWthTuWUtSiLzlUBfWWwvdAOKi6yeBE3axGa9uri-xIWbGiE/exec";
+  var DAYS_TO_KEEP = 7;   // should match the script
 
   /* ---------- Make sure the person is logged in ---------- */
   if (!localStorage.getItem("bcagLoggedIn")) {
@@ -260,17 +280,16 @@
   var isAdmin = localStorage.getItem("bcagRole") === "admin";
 
   var listEl = document.getElementById("list");
+  var noteEl = document.getElementById("note");
   var overlay = document.getElementById("overlay");
-  var currentType = "event";
-  var pending = null;     // the request currently in progress
-  var leaving = false;    // true once Back has been tapped
+  var CACHE_KEY = "bcagCommunityCache";
 
-  /* ---------- Back button ---------- */
-  document.getElementById("backBtn").onclick = function () {
-    leaving = true;
-    if (pending) pending.abort();     // stop waiting, so nothing hangs
-    window.location.href = "members.html";
-  };
+  var currentType = "event";
+  var posts = [];            // what is on the screen right now
+  var mine = [];             // posts this phone has just sent
+  var loadState = "loading"; // "loading", "ready" or "failed"
+  var refreshing = false;
+  var needAnother = false;
 
   /* ---------- Small helpers ---------- */
   function el(tag, className, text) {
@@ -304,10 +323,91 @@
     return d.getFullYear() + "-" + m + "-" + day;
   }
 
-  /* ---------- Ask the script for something, with a time limit ---------- */
+  function isSame(a, b) {
+    return a.type === b.type && a.name === b.name && a.title === b.title && a.message === b.message;
+  }
+
+  /* ---------- Saved copy of the board (so it opens instantly) ---------- */
+  function stillCurrent(p) {
+    if (p.type === "event") return String(p.eventDate) >= todayText();
+    return p.posted > Date.now() - DAYS_TO_KEEP * 24 * 60 * 60 * 1000;
+  }
+
+  function loadCache() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (c && Array.isArray(c.posts)) return c.posts.filter(stillCurrent);
+    } catch (e) {}
+    return null;
+  }
+
+  function saveCache() {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts: posts })); } catch (e) {}
+  }
+
+  /* ---------- The little message line above the posts ---------- */
+  function setNote(text, btnLabel, btnFn, detail) {
+    noteEl.innerHTML = "";
+    if (!text) return;
+    noteEl.appendChild(document.createTextNode(text + " "));
+    if (btnLabel) {
+      var b = el("button", "", btnLabel);
+      b.type = "button";
+      b.onclick = btnFn;
+      noteEl.appendChild(b);
+    }
+    if (detail) noteEl.appendChild(el("div", "detail", detail));
+  }
+
+  /* ---------- Draw the posts ---------- */
+  function drawPost(p) {
+    var type = ["event", "shoutout", "chat"].indexOf(p.type) === -1 ? "chat" : p.type;
+    var card = el("div", "post " + type + (p.sending ? " sending" : ""));
+    var isLocal = String(p.id).indexOf("tmp") === 0;
+    var when = p.sending ? "Sending\u2026" : timeAgo(p.posted);
+
+    if (isAdmin && !isLocal) {
+      var del = el("button", "delete", "Delete");
+      del.type = "button";
+      del.onclick = function () { deletePost(p); };
+      card.appendChild(del);
+    }
+
+    if (type === "event") {
+      card.appendChild(el("div", "tag", "Event"));
+      card.appendChild(el("div", "when", niceDate(p.eventDate)));
+      card.appendChild(el("p", "headline", p.title));
+      if (p.message) card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", "Posted by " + p.name + " \u2022 " + when));
+    } else if (type === "shoutout") {
+      card.appendChild(el("div", "tag", "Shout-out"));
+      card.appendChild(el("p", "headline", "For " + p.title));
+      card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", "From " + p.name + " \u2022 " + when));
+    } else {
+      card.appendChild(el("div", "tag", "Chat"));
+      card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", p.name + " \u2022 " + when));
+    }
+    return card;
+  }
+
+  function render() {
+    listEl.innerHTML = "";
+    if (posts.length === 0) {
+      if (loadState === "ready") {
+        listEl.appendChild(el("div", "status", "Nothing here yet. Tap \u201c+ Post something\u201d to be the first."));
+      } else if (loadState === "loading") {
+        listEl.appendChild(el("div", "status", "Loading\u2026 the first time can take a few seconds."));
+      }
+      return;
+    }
+    posts.forEach(function (p) { listEl.appendChild(drawPost(p)); });
+  }
+
+  /* ---------- Get the latest posts (quietly, in the background) ---------- */
   function getJson(url, ms) {
     var controller = new AbortController();
-    pending = controller;
     var timer = setTimeout(function () { controller.abort(); }, ms);
     return fetch(url, { signal: controller.signal, credentials: "omit", cache: "no-store" })
       .then(function (r) { return r.text(); })
@@ -323,91 +423,79 @@
       });
   }
 
-  /* ---------- Show the posts ---------- */
-  function showStatus(message, withRetry, detail) {
-    listEl.innerHTML = "";
-    var box = el("div", "status", message);
-    if (withRetry) {
-      var b = el("button", "", "Try again");
-      b.onclick = function () { loadPosts(1); };
-      box.appendChild(document.createElement("br"));
-      box.appendChild(b);
-    }
-    if (detail) box.appendChild(el("div", "detail", detail));
-    listEl.appendChild(box);
+  function mergeMine(list) {
+    // keep posts this phone just sent until the board shows them
+    mine = mine.filter(function (m) { return !m.doneAt || Date.now() - m.doneAt < 60000; });
+    var extra = mine.filter(function (m) {
+      return !list.some(function (p) { return isSame(p, m); });
+    });
+    return extra.concat(list);
   }
 
-  function drawPost(p) {
-    var type = ["event", "shoutout", "chat"].indexOf(p.type) === -1 ? "chat" : p.type;
-    var card = el("div", "post " + type);
-
-    if (isAdmin) {
-      var del = el("button", "delete", "Delete");
-      del.onclick = function () { deletePost(p.id); };
-      card.appendChild(del);
-    }
-
-    if (type === "event") {
-      card.appendChild(el("div", "tag", "Event"));
-      card.appendChild(el("div", "when", niceDate(p.eventDate)));
-      card.appendChild(el("p", "headline", p.title));
-      if (p.message) card.appendChild(el("p", "message", p.message));
-      card.appendChild(el("div", "meta", "Posted by " + p.name + " \u2022 " + timeAgo(p.posted)));
-    } else if (type === "shoutout") {
-      card.appendChild(el("div", "tag", "Shout-out"));
-      card.appendChild(el("p", "headline", "For " + p.title));
-      card.appendChild(el("p", "message", p.message));
-      card.appendChild(el("div", "meta", "From " + p.name + " \u2022 " + timeAgo(p.posted)));
-    } else {
-      card.appendChild(el("div", "tag", "Chat"));
-      card.appendChild(el("p", "message", p.message));
-      card.appendChild(el("div", "meta", p.name + " \u2022 " + timeAgo(p.posted)));
-    }
-    return card;
+  function finishRefresh() {
+    refreshing = false;
+    if (needAnother) { needAnother = false; refresh(1); }
   }
 
-  function loadPosts(attempt) {
+  function refresh(attempt) {
     attempt = attempt || 1;
-    showStatus(attempt === 1 ? "Loading\u2026" : "Still trying\u2026", false);
+    if (attempt === 1) {
+      if (refreshing) { needAnother = true; return; }
+      refreshing = true;
+    }
+    if (posts.length > 0) setNote("Updating\u2026");
 
-    // the "?t=" bit makes sure we always get fresh posts, never an old saved copy
-    getJson(COMMUNITY_URL + "?t=" + Date.now(), 20000)
-      .then(function (posts) {
-        if (!Array.isArray(posts)) {
-          throw new Error("The board sent back: " + JSON.stringify(posts).slice(0, 80));
+    getJson(COMMUNITY_URL + "?t=" + Date.now(), 25000)
+      .then(function (list) {
+        if (!Array.isArray(list)) {
+          throw new Error("The board sent back: " + JSON.stringify(list).slice(0, 80));
         }
-        if (posts.length === 0) {
-          showStatus("Nothing here yet. Tap \u201c+ Post something\u201d to be the first.", false);
-          return;
-        }
-        listEl.innerHTML = "";
-        posts.forEach(function (p) { listEl.appendChild(drawPost(p)); });
+        posts = mergeMine(list);
+        loadState = "ready";
+        saveCache();
+        render();
+        setNote("");
+        finishRefresh();
       })
       .catch(function (err) {
-        if (leaving) return;
-        if (attempt < 2) { loadPosts(2); return; }     // try once more automatically
-        showStatus("Could not load the board.", true, String((err && err.message) || err));
+        if (attempt < 2) { refresh(2); return; }
+        if (posts.length === 0) loadState = "failed";
+        render();
+        setNote(
+          posts.length ? "Couldn\u2019t update. Showing the last posts we have." : "Couldn\u2019t load the board.",
+          "Try again",
+          function () { refresh(1); },
+          String((err && err.message) || err)
+        );
+        finishRefresh();
       });
   }
 
-  /* ---------- Talk to the script (post / delete) ---------- */
-  function sendToScript(data) {
-    // "text/plain" is deliberate: it lets the browser send this to Google without any fuss
+  /* ---------- Send a post or delete (in the background) ---------- */
+  function send(data) {
+    // "text/plain" lets the browser send this to Google without any fuss.
+    // "keepalive" lets it finish even if you press Back straight away.
     return fetch(COMMUNITY_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      keepalive: true
     }).then(function (r) { return r.json(); });
   }
 
-  function deletePost(id) {
+  function deletePost(p) {
     if (!confirm("Delete this post?")) return;
-    sendToScript({ action: "delete", id: id })
+    posts = posts.filter(function (x) { return x !== p; });
+    mine = mine.filter(function (m) { return !isSame(m, p); });
+    saveCache();
+    render();
+    send({ action: "delete", id: p.id })
       .then(function (res) {
-        if (res.ok) loadPosts(1);
-        else alert(res.error || "Could not delete that post.");
+        if (!res.ok) { setNote(res.error || "That post could not be deleted."); refresh(1); }
       })
-      .catch(function () { alert("Could not delete that post. Try again."); });
+      .catch(function () {
+        setNote("Delete did not go through.", "Try again", function () { refresh(1); });
+      });
   }
 
   /* ---------- The form ---------- */
@@ -418,14 +506,11 @@
       buttons[i].classList.toggle("on", buttons[i].getAttribute("data-type") === type);
     }
 
-    var titleWrap = document.getElementById("titleWrap");
-    var dateWrap = document.getElementById("dateWrap");
+    document.getElementById("titleWrap").classList.toggle("hidden", type === "chat");
+    document.getElementById("dateWrap").classList.toggle("hidden", type !== "event");
+
     var msgLabel = document.getElementById("msgLabel");
     var titleLabel = document.getElementById("titleLabel");
-
-    titleWrap.classList.toggle("hidden", type === "chat");
-    dateWrap.classList.toggle("hidden", type !== "event");
-
     if (type === "event") {
       titleLabel.textContent = "What is happening?";
       msgLabel.innerHTML = 'More details <span class="hint">(optional)</span>';
@@ -438,14 +523,15 @@
     document.getElementById("formError").textContent = "";
   }
 
-  function openForm() {
-    document.getElementById("fName").value = localStorage.getItem("bcagName") || "";
-    document.getElementById("fTitle").value = "";
-    document.getElementById("fMsg").value = "";
+  function openForm(prefill) {
+    prefill = prefill || {};
+    document.getElementById("fName").value = prefill.name || localStorage.getItem("bcagName") || "";
+    document.getElementById("fTitle").value = prefill.title || "";
+    document.getElementById("fMsg").value = prefill.message || "";
     var dateBox = document.getElementById("fDate");
-    dateBox.value = "";
     dateBox.min = todayText();      // stops past dates being picked
-    setType("event");
+    dateBox.value = prefill.eventDate || "";
+    setType(prefill.type || "event");
     overlay.classList.add("open");
   }
 
@@ -453,7 +539,6 @@
 
   function submitForm() {
     var errorBox = document.getElementById("formError");
-    var sendBtn = document.getElementById("sendBtn");
     var name = document.getElementById("fName").value.trim();
 
     var data = {
@@ -474,38 +559,67 @@
       if (!data.message) { errorBox.textContent = "Please type a message."; return; }
     }
 
-    errorBox.textContent = "";
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Posting\u2026";
+    localStorage.setItem("bcagName", name);   // remember their name for next time
 
-    sendToScript(data)
+    // Show the post straight away and close the form. Sending carries on in the background.
+    var tmp = {
+      id: "tmp" + Date.now(),
+      type: data.type, name: data.name, title: data.title,
+      message: data.message, eventDate: data.eventDate,
+      posted: Date.now(), sending: true
+    };
+    mine.unshift(tmp);
+    posts.unshift(tmp);
+    if (loadState !== "ready") loadState = "ready";
+    saveCache();
+    render();
+    closeForm();
+
+    send(data)
       .then(function (res) {
-        if (res.ok) {
-          localStorage.setItem("bcagName", name);   // remember their name for next time
-          closeForm();
-          loadPosts(1);
+        if (res && res.ok) {
+          tmp.sending = false;
+          tmp.doneAt = Date.now();
+          render();
+          refresh(1);
         } else {
-          errorBox.textContent = res.error || "Could not post. Please try again.";
+          failed(tmp, data, (res && res.error) || "The post could not be saved.");
         }
       })
       .catch(function () {
-        errorBox.textContent = "Could not post. Check your signal and try again.";
-      })
-      .then(function () {
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Post";
+        failed(tmp, data, "Check your signal.");
       });
   }
 
+  function failed(tmp, data, reason) {
+    posts = posts.filter(function (p) { return p !== tmp; });
+    mine = mine.filter(function (m) { return m !== tmp; });
+    saveCache();
+    render();
+    setNote("Your post didn\u2019t send. " + reason, "Edit and try again", function () {
+      setNote("");
+      openForm(data);
+    });
+  }
+
   /* ---------- Wire up the buttons ---------- */
-  document.getElementById("openForm").onclick = openForm;
+  document.getElementById("openForm").onclick = function () { openForm(); };
   document.getElementById("cancelBtn").onclick = closeForm;
   document.getElementById("sendBtn").onclick = submitForm;
   document.querySelectorAll("#types button").forEach(function (b) {
     b.onclick = function () { setType(b.getAttribute("data-type")); };
   });
 
-  loadPosts(1);
+  // Update the board whenever the app is opened again
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) refresh(1);
+  });
+
+  /* ---------- Start: show the saved copy at once, then update it ---------- */
+  var cached = loadCache();
+  if (cached) { posts = cached; loadState = "ready"; }
+  render();
+  refresh(1);
 </script>
 </body>
 </html>
