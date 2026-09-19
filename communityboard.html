@@ -29,15 +29,20 @@
     padding-bottom: 110px; /* room for the blue bar at the bottom */
   }
 
-  .top { padding: 16px 18px 4px; }
+  .top { padding: 10px 18px 4px; position: relative; z-index: 5; }
   .back {
-    display: inline-block;
+    background: none;
+    border: 0;
+    font: inherit;
     color: var(--blue-dark);
-    font-weight: 600;
-    text-decoration: none;
-    padding: 6px 0;
+    font-weight: 700;
+    padding: 12px 24px 12px 0;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
   }
-  h1 { margin: 6px 0 2px; font-size: 28px; }
+  h1 { margin: 2px 0 2px; font-size: 28px; }
   .intro { margin: 0 0 12px; color: var(--soft); font-size: 15px; }
 
   .list { padding: 0 14px; max-width: 640px; margin: 0 auto; }
@@ -94,6 +99,7 @@
     padding: 10px 22px;
     font-size: 16px;
   }
+  .status .detail { font-size: 12px; margin-top: 14px; overflow-wrap: anywhere; }
 
   /* ---------- BLUE BAR AT THE BOTTOM ---------- */
   .bar {
@@ -189,7 +195,7 @@
 <body>
 
 <div class="top">
-  <a class="back" href="members.html">&larr; Back</a>
+  <button type="button" class="back" id="backBtn">&larr; Back</button>
   <h1>Community Board</h1>
   <p class="intro">Events, shout-outs and chat from the group.</p>
 </div>
@@ -256,6 +262,15 @@
   var listEl = document.getElementById("list");
   var overlay = document.getElementById("overlay");
   var currentType = "event";
+  var pending = null;     // the request currently in progress
+  var leaving = false;    // true once Back has been tapped
+
+  /* ---------- Back button ---------- */
+  document.getElementById("backBtn").onclick = function () {
+    leaving = true;
+    if (pending) pending.abort();     // stop waiting, so nothing hangs
+    window.location.href = "members.html";
+  };
 
   /* ---------- Small helpers ---------- */
   function el(tag, className, text) {
@@ -289,16 +304,36 @@
     return d.getFullYear() + "-" + m + "-" + day;
   }
 
+  /* ---------- Ask the script for something, with a time limit ---------- */
+  function getJson(url, ms) {
+    var controller = new AbortController();
+    pending = controller;
+    var timer = setTimeout(function () { controller.abort(); }, ms);
+    return fetch(url, { signal: controller.signal, credentials: "omit", cache: "no-store" })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        clearTimeout(timer);
+        try { return JSON.parse(t); }
+        catch (e) { throw new Error("The reply was not readable: " + t.slice(0, 60)); }
+      })
+      .catch(function (err) {
+        clearTimeout(timer);
+        if (err && err.name === "AbortError") throw new Error("Took too long (over " + (ms / 1000) + " seconds)");
+        throw err;
+      });
+  }
+
   /* ---------- Show the posts ---------- */
-  function showStatus(message, withRetry) {
+  function showStatus(message, withRetry, detail) {
     listEl.innerHTML = "";
     var box = el("div", "status", message);
     if (withRetry) {
       var b = el("button", "", "Try again");
-      b.onclick = loadPosts;
+      b.onclick = function () { loadPosts(1); };
       box.appendChild(document.createElement("br"));
       box.appendChild(b);
     }
+    if (detail) box.appendChild(el("div", "detail", detail));
     listEl.appendChild(box);
   }
 
@@ -331,12 +366,16 @@
     return card;
   }
 
-  function loadPosts() {
-    showStatus("Loading\u2026", false);
-    fetch(COMMUNITY_URL)
-      .then(function (r) { return r.json(); })
+  function loadPosts(attempt) {
+    attempt = attempt || 1;
+    showStatus(attempt === 1 ? "Loading\u2026" : "Still trying\u2026", false);
+
+    // the "?t=" bit makes sure we always get fresh posts, never an old saved copy
+    getJson(COMMUNITY_URL + "?t=" + Date.now(), 20000)
       .then(function (posts) {
-        if (!Array.isArray(posts)) throw new Error("bad data");
+        if (!Array.isArray(posts)) {
+          throw new Error("The board sent back: " + JSON.stringify(posts).slice(0, 80));
+        }
         if (posts.length === 0) {
           showStatus("Nothing here yet. Tap \u201c+ Post something\u201d to be the first.", false);
           return;
@@ -344,8 +383,10 @@
         listEl.innerHTML = "";
         posts.forEach(function (p) { listEl.appendChild(drawPost(p)); });
       })
-      .catch(function () {
-        showStatus("Could not load the board. Check your signal and try again.", true);
+      .catch(function (err) {
+        if (leaving) return;
+        if (attempt < 2) { loadPosts(2); return; }     // try once more automatically
+        showStatus("Could not load the board.", true, String((err && err.message) || err));
       });
   }
 
@@ -363,7 +404,7 @@
     if (!confirm("Delete this post?")) return;
     sendToScript({ action: "delete", id: id })
       .then(function (res) {
-        if (res.ok) loadPosts();
+        if (res.ok) loadPosts(1);
         else alert(res.error || "Could not delete that post.");
       })
       .catch(function () { alert("Could not delete that post. Try again."); });
@@ -442,7 +483,7 @@
         if (res.ok) {
           localStorage.setItem("bcagName", name);   // remember their name for next time
           closeForm();
-          loadPosts();
+          loadPosts(1);
         } else {
           errorBox.textContent = res.error || "Could not post. Please try again.";
         }
@@ -464,7 +505,7 @@
     b.onclick = function () { setType(b.getAttribute("data-type")); };
   });
 
-  loadPosts();
+  loadPosts(1);
 </script>
 </body>
 </html>
