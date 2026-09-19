@@ -45,15 +45,14 @@ var nameArea=document.getElementById("nameArea");
 var savedArea=document.getElementById("savedArea");
 var datesDiv=document.getElementById("dates");
 var saveBtn=document.getElementById("saveBtn");
-function renderName(){if(name){nameArea.style.display="none";savedArea.style.display="block";savedArea.innerHTML='<div class="saved"><div>You are: <b>'+name+'</b> ✓</div><div style="font-size:12px;color:#444;margin-top:4px">Name saved — next time you won\'t need to type it.</div><div style="margin-top:8px"><a href="#" id="changeLink" style="color:#144FA3;font-size:13px">Not you? Change name</a></div></div>';document.getElementById("changeLink").onclick=function(e){e.preventDefault();localStorage.removeItem("wc_name");name="";nameArea.style.display="block";savedArea.style.display="none";nameInput.focus();};}else{nameArea.style.display="block";savedArea.style.display="none";}}
+function renderName(){if(name){nameArea.style.display="none";savedArea.style.display="block";savedArea.innerHTML='<div class="saved"><div>You are: <b>'+name+'</b> ✓</div><div style="font-size:12px;color:#444;margin-top:4px">Name saved — next time you won\'t need to type it.</div><div style="margin-top:8px"><a href="#" id="changeLink" style="color:#144FA3;font-size:13px">Not you? Change name</a></div></div>';document.getElementById("changeLink").onclick=function(e){e.preventDefault();localStorage.removeItem("wc_name");name="";nameInput.value="";nameArea.style.display="block";savedArea.style.display="none";nameInput.focus();};}else{nameArea.style.display="block";savedArea.style.display="none";}}
 function renderDates(){datesDiv.innerHTML="";weds.forEach(function(d){var iso=toISO(d);var div=document.createElement("div");div.innerHTML='<div class="dateLabel">'+fmt(d)+'</div><div class="row"><button class="btn '+(att[iso]=='coming'?'coming':'')+'" data-iso="'+iso+'" data-val="coming">Coming</button><button class="btn '+(att[iso]=='cant'?'cant':'')+'" data-iso="'+iso+'" data-val="cant">Can\'t Come</button></div>';datesDiv.appendChild(div);});datesDiv.querySelectorAll("button").forEach(function(b){b.onclick=function(){var iso=b.dataset.iso;var val=b.dataset.val;att[iso]=val;localStorage.setItem("wc_attendance",JSON.stringify(att));saveBtn.textContent="Save";renderDates();};});}
 nameInput.value=name;
-nameInput.addEventListener("input",function(){var v=nameInput.value.trim();if(v){name=v;localStorage.setItem("wc_name",v);renderName();}});
 renderName();renderDates();
 saveBtn.onclick=function(){
   var n=(localStorage.getItem("wc_name")||nameInput.value||"").trim();
   if(!n){alert("Please enter your name e.g. D Collier");nameInput.focus();return;}
-  localStorage.setItem("wc_name",n);
+  localStorage.setItem("wc_name",n);name=n;renderName();
   var payload={name:n,attendance:att,timestamp:new Date().toISOString()};
   try{var raw=localStorage.getItem("wc_all_submissions");var all=raw?JSON.parse(raw):[];if(!Array.isArray(all))all=[];var idx=all.findIndex(function(s){return s.name.toLowerCase()===n.toLowerCase();});if(idx>=0)all[idx]=payload;else all.push(payload);localStorage.setItem("wc_all_submissions",JSON.stringify(all));}catch(e){}
   saveBtn.disabled=true;
