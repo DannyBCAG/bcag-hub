@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Community Board</title>
+<style>
+  /* ---------- COLOURS (change these to restyle the whole page) ---------- */
+  :root {
+    --page:   #ece6f7;   /* pale violet background */
+    --blue:   #2f6db5;   /* BCAG blue */
+    --blue-dark: #1f4f8c;
+    --ink:    #2b2540;   /* main text */
+    --soft:   #6d6688;   /* small grey-purple text */
+    --card:   #ffffff;
+    --event:  #2f6db5;   /* Event label colour */
+    --shout:  #d9931f;   /* Shout-out label colour */
+    --chat:   #7a5bb5;   /* Chat label colour */
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.4;
+    padding-bottom: 110px; /* room for the blue bar at the bottom */
+  }
+
+  .top { padding: 16px 18px 4px; }
+  .back {
+    display: inline-block;
+    color: var(--blue-dark);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 0;
+  }
+  h1 { margin: 6px 0 2px; font-size: 28px; }
+  .intro { margin: 0 0 12px; color: var(--soft); font-size: 15px; }
+
+  .list { padding: 0 14px; max-width: 640px; margin: 0 auto; }
+
+  /* ---------- POST CARDS ---------- */
+  .post {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 14px 16px 14px 18px;
+    margin-bottom: 12px;
+    border-left: 8px solid var(--chat);
+    box-shadow: 0 1px 4px rgba(43, 37, 64, 0.12);
+  }
+  .post.event   { border-left-color: var(--event); }
+  .post.shoutout { border-left-color: var(--shout); }
+  .post.chat    { border-left-color: var(--chat); }
+
+  .tag { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .event .tag    { color: var(--event); }
+  .shoutout .tag { color: var(--shout); }
+  .chat .tag     { color: var(--chat); }
+
+  .headline { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .message  { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .meta     { font-size: 14px; color: var(--soft); }
+
+  .when {
+    display: inline-block;
+    background: #e3edf9;
+    color: var(--blue-dark);
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 3px 10px;
+    margin-bottom: 6px;
+  }
+
+  .delete {
+    float: right;
+    background: none;
+    border: 1px solid #c9c2dc;
+    color: var(--soft);
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 13px;
+  }
+
+  .status { text-align: center; color: var(--soft); padding: 30px 20px; }
+  .status button {
+    margin-top: 10px;
+    background: var(--blue);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-size: 16px;
+  }
+
+  /* ---------- BLUE BAR AT THE BOTTOM ---------- */
+  .bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--blue);
+    border-radius: 26px 26px 0 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .bar button {
+    background: #fff;
+    color: var(--blue-dark);
+    font-weight: 700;
+    font-size: 17px;
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 28px;
+  }
+
+  /* ---------- POST FORM (slides up over the page) ---------- */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(43, 37, 64, 0.55);
+    z-index: 10;
+  }
+  .overlay.open { display: block; }
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-height: 92%;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 26px 26px 0 0;
+    padding: 18px 18px calc(22px + env(safe-area-inset-bottom));
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .sheet h2 { margin: 0 0 12px; font-size: 22px; }
+
+  .types { display: flex; gap: 8px; margin-bottom: 14px; }
+  .types button {
+    flex: 1;
+    padding: 10px 4px;
+    border-radius: 12px;
+    border: 2px solid #d5cee6;
+    background: #fff;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .types button.on { color: #fff; border-color: transparent; }
+  .types button[data-type="event"].on    { background: var(--event); }
+  .types button[data-type="shoutout"].on { background: var(--shout); }
+  .types button[data-type="chat"].on     { background: var(--chat); }
+
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  .hint { font-weight: 400; color: var(--soft); font-size: 14px; }
+  input, textarea {
+    width: 100%;
+    font: inherit;
+    padding: 10px 12px;
+    border: 2px solid #d5cee6;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input:focus, textarea:focus, button:focus-visible {
+    outline: 3px solid #9bbbe6;
+    outline-offset: 1px;
+  }
+
+  .error { color: #b3261e; font-weight: 600; margin-top: 12px; min-height: 1.2em; }
+  .actions { display: flex; gap: 10px; margin-top: 10px; }
+  .actions button {
+    flex: 1;
+    padding: 13px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 700;
+    border: 0;
+  }
+  .actions .cancel { background: #ece6f7; color: var(--ink); }
+  .actions .send   { background: var(--blue); color: #fff; }
+  .actions .send:disabled { opacity: 0.6; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="members.html">&larr; Back</a>
+  <h1>Community Board</h1>
+  <p class="intro">Events, shout-outs and chat from the group.</p>
+</div>
+
+<div class="list" id="list">
+  <div class="status">Loading&hellip;</div>
+</div>
+
+<div class="bar">
+  <button id="openForm">+ Post something</button>
+</div>
+
+<!-- The form -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>New post</h2>
+
+    <div class="types" id="types">
+      <button type="button" data-type="event">Event</button>
+      <button type="button" data-type="shoutout">Shout-out</button>
+      <button type="button" data-type="chat">Chat</button>
+    </div>
+
+    <label for="fName">Your name</label>
+    <input id="fName" maxlength="60" autocomplete="given-name">
+
+    <div id="titleWrap">
+      <label for="fTitle" id="titleLabel">Title</label>
+      <input id="fTitle" maxlength="80">
+    </div>
+
+    <div id="dateWrap">
+      <label for="fDate">Date of the event <span class="hint">(the day it will happen)</span></label>
+      <input id="fDate" type="date">
+    </div>
+
+    <div id="msgWrap">
+      <label for="fMsg" id="msgLabel">Message</label>
+      <textarea id="fMsg" maxlength="200"></textarea>
+    </div>
+
+    <div class="error" id="formError"></div>
+
+    <div class="actions">
+      <button type="button" class="cancel" id="cancelBtn">Cancel</button>
+      <button type="button" class="send" id="sendBtn">Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =====================================================
+     SETTINGS - the only thing you might ever need to edit
+     ===================================================== */
+  // The web address of the "BCAG Community" Apps Script
+  var COMMUNITY_URL = "https://script.google.com/macros/s/AKfycbz-LcTRsfi-ER4H8m2TaWthTuWUtSiLzlUBfWWwvdAOKi6yeBE3axGa9uri-xIWbGiE/exec";
+
+  /* ---------- Make sure the person is logged in ---------- */
+  if (!localStorage.getItem("bcagLoggedIn")) {
+    window.location.replace("index.html");
+  }
+  var isAdmin = localStorage.getItem("bcagRole") === "admin";
+
+  var listEl = document.getElementById("list");
+  var overlay = document.getElementById("overlay");
+  var currentType = "event";
+
+  /* ---------- Small helpers ---------- */
+  function el(tag, className, text) {
+    var e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  function niceDate(text) {           // "2026-10-14" -> "Wed 14 Oct"
+    var p = String(text).split("-");
+    if (p.length !== 3) return text;
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  function timeAgo(ms) {
+    var mins = Math.floor((Date.now() - ms) / 60000);
+    if (mins < 2) return "just now";
+    if (mins < 60) return mins + " minutes ago";
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+    var days = Math.floor(hrs / 24);
+    return days + (days === 1 ? " day ago" : " days ago");
+  }
+
+  function todayText() {              // today as yyyy-mm-dd, local time
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + m + "-" + day;
+  }
+
+  /* ---------- Show the posts ---------- */
+  function showStatus(message, withRetry) {
+    listEl.innerHTML = "";
+    var box = el("div", "status", message);
+    if (withRetry) {
+      var b = el("button", "", "Try again");
+      b.onclick = loadPosts;
+      box.appendChild(document.createElement("br"));
+      box.appendChild(b);
+    }
+    listEl.appendChild(box);
+  }
+
+  function drawPost(p) {
+    var type = ["event", "shoutout", "chat"].indexOf(p.type) === -1 ? "chat" : p.type;
+    var card = el("div", "post " + type);
+
+    if (isAdmin) {
+      var del = el("button", "delete", "Delete");
+      del.onclick = function () { deletePost(p.id); };
+      card.appendChild(del);
+    }
+
+    if (type === "event") {
+      card.appendChild(el("div", "tag", "Event"));
+      card.appendChild(el("div", "when", niceDate(p.eventDate)));
+      card.appendChild(el("p", "headline", p.title));
+      if (p.message) card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", "Posted by " + p.name + " \u2022 " + timeAgo(p.posted)));
+    } else if (type === "shoutout") {
+      card.appendChild(el("div", "tag", "Shout-out"));
+      card.appendChild(el("p", "headline", "For " + p.title));
+      card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", "From " + p.name + " \u2022 " + timeAgo(p.posted)));
+    } else {
+      card.appendChild(el("div", "tag", "Chat"));
+      card.appendChild(el("p", "message", p.message));
+      card.appendChild(el("div", "meta", p.name + " \u2022 " + timeAgo(p.posted)));
+    }
+    return card;
+  }
+
+  function loadPosts() {
+    showStatus("Loading\u2026", false);
+    fetch(COMMUNITY_URL)
+      .then(function (r) { return r.json(); })
+      .then(function (posts) {
+        if (!Array.isArray(posts)) throw new Error("bad data");
+        if (posts.length === 0) {
+          showStatus("Nothing here yet. Tap \u201c+ Post something\u201d to be the first.", false);
+          return;
+        }
+        listEl.innerHTML = "";
+        posts.forEach(function (p) { listEl.appendChild(drawPost(p)); });
+      })
+      .catch(function () {
+        showStatus("Could not load the board. Check your signal and try again.", true);
+      });
+  }
+
+  /* ---------- Talk to the script (post / delete) ---------- */
+  function sendToScript(data) {
+    // "text/plain" is deliberate: it lets the browser send this to Google without any fuss
+    return fetch(COMMUNITY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data)
+    }).then(function (r) { return r.json(); });
+  }
+
+  function deletePost(id) {
+    if (!confirm("Delete this post?")) return;
+    sendToScript({ action: "delete", id: id })
+      .then(function (res) {
+        if (res.ok) loadPosts();
+        else alert(res.error || "Could not delete that post.");
+      })
+      .catch(function () { alert("Could not delete that post. Try again."); });
+  }
+
+  /* ---------- The form ---------- */
+  function setType(type) {
+    currentType = type;
+    var buttons = document.querySelectorAll("#types button");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].classList.toggle("on", buttons[i].getAttribute("data-type") === type);
+    }
+
+    var titleWrap = document.getElementById("titleWrap");
+    var dateWrap = document.getElementById("dateWrap");
+    var msgLabel = document.getElementById("msgLabel");
+    var titleLabel = document.getElementById("titleLabel");
+
+    titleWrap.classList.toggle("hidden", type === "chat");
+    dateWrap.classList.toggle("hidden", type !== "event");
+
+    if (type === "event") {
+      titleLabel.textContent = "What is happening?";
+      msgLabel.innerHTML = 'More details <span class="hint">(optional)</span>';
+    } else if (type === "shoutout") {
+      titleLabel.textContent = "Who is it for?";
+      msgLabel.textContent = "Your shout-out";
+    } else {
+      msgLabel.textContent = "Your message";
+    }
+    document.getElementById("formError").textContent = "";
+  }
+
+  function openForm() {
+    document.getElementById("fName").value = localStorage.getItem("bcagName") || "";
+    document.getElementById("fTitle").value = "";
+    document.getElementById("fMsg").value = "";
+    var dateBox = document.getElementById("fDate");
+    dateBox.value = "";
+    dateBox.min = todayText();      // stops past dates being picked
+    setType("event");
+    overlay.classList.add("open");
+  }
+
+  function closeForm() { overlay.classList.remove("open"); }
+
+  function submitForm() {
+    var errorBox = document.getElementById("formError");
+    var sendBtn = document.getElementById("sendBtn");
+    var name = document.getElementById("fName").value.trim();
+
+    var data = {
+      type: currentType,
+      name: name,
+      title: currentType === "chat" ? "" : document.getElementById("fTitle").value.trim(),
+      message: document.getElementById("fMsg").value.trim(),
+      eventDate: currentType === "event" ? document.getElementById("fDate").value : ""
+    };
+
+    // Quick checks so people get a clear message straight away
+    if (!name) { errorBox.textContent = "Please add your name."; return; }
+    if (currentType === "event") {
+      if (!data.title) { errorBox.textContent = "Please say what is happening."; return; }
+      if (!data.eventDate) { errorBox.textContent = "Please pick the date of the event."; return; }
+    } else {
+      if (currentType === "shoutout" && !data.title) { errorBox.textContent = "Please say who the shout-out is for."; return; }
+      if (!data.message) { errorBox.textContent = "Please type a message."; return; }
+    }
+
+    errorBox.textContent = "";
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Posting\u2026";
+
+    sendToScript(data)
+      .then(function (res) {
+        if (res.ok) {
+          localStorage.setItem("bcagName", name);   // remember their name for next time
+          closeForm();
+          loadPosts();
+        } else {
+          errorBox.textContent = res.error || "Could not post. Please try again.";
+        }
+      })
+      .catch(function () {
+        errorBox.textContent = "Could not post. Check your signal and try again.";
+      })
+      .then(function () {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Post";
+      });
+  }
+
+  /* ---------- Wire up the buttons ---------- */
+  document.getElementById("openForm").onclick = openForm;
+  document.getElementById("cancelBtn").onclick = closeForm;
+  document.getElementById("sendBtn").onclick = submitForm;
+  document.querySelectorAll("#types button").forEach(function (b) {
+    b.onclick = function () { setType(b.getAttribute("data-type")); };
+  });
+
+  loadPosts();
+</script>
+</body>
+</html>
