@@ -10,6 +10,11 @@
 
 <style>
 
+:root {
+    /* Change this one line to change the blue everywhere on this page */
+    --bcag-blue: #2b5fa5;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -17,6 +22,7 @@
 body {
     margin: 0;
     padding: 15px;
+    padding-bottom: 80px; /* leaves room for the blue bar at the bottom */
     background: #f5f1e8;
     font-family: Arial, sans-serif;
     color: #333;
@@ -70,6 +76,141 @@ h1 {
     text-align: center;
     font-size: 13px;
     font-weight: bold;
+}
+
+/* CURVED BLUE BAR AT THE BOTTOM */
+
+#bottomBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 500;
+    background: var(--bcag-blue);
+    border-radius: 22px 22px 0 0;
+    padding: 8px 20px calc(8px + env(safe-area-inset-bottom));
+    text-align: center;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.10);
+}
+
+#addBtn {
+    background: white;
+    color: var(--bcag-blue);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* ADD YOUR PAINTING WINDOW */
+
+#uploadPanel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1100;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+#uploadBox {
+    position: relative;
+    max-width: 420px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 24px 22px;
+}
+
+#uploadBox h2 {
+    margin: 0 0 16px;
+    font-size: 22px;
+    color: var(--bcag-blue);
+}
+
+#closeUpload {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 32px;
+    color: #666;
+    cursor: pointer;
+}
+
+#uploadBox label.field-label {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+#artistName {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #bbb;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+
+/* the real file picker is hidden; the blue button below opens it */
+#photoInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pick-button {
+    display: block;
+    text-align: center;
+    background: white;
+    color: var(--bcag-blue);
+    border: 2px solid var(--bcag-blue);
+    border-radius: 999px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#preview {
+    display: none;
+    width: 100%;
+    max-height: 260px;
+    object-fit: contain;
+    margin-top: 14px;
+    border-radius: 10px;
+    background: #f5f1e8;
+}
+
+#sendBtn {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    background: var(--bcag-blue);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 14px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#sendBtn:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+#uploadStatus {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 15px;
+    min-height: 20px;
 }
 
 /* FULL SIZE VIEWER */
@@ -131,6 +272,45 @@ h1 {
 <div id="gallery"></div>
 
 
+<!-- CURVED BLUE BAR -->
+
+<div id="bottomBar">
+    <button id="addBtn" type="button">+ Add your painting</button>
+</div>
+
+
+<!-- ADD YOUR PAINTING WINDOW -->
+
+<div id="uploadPanel">
+
+    <div id="uploadBox">
+
+        <div id="closeUpload">&times;</div>
+
+        <h2>Add your painting</h2>
+
+        <label class="field-label" for="artistName">Your name</label>
+        <input
+            id="artistName"
+            type="text"
+            maxlength="60"
+            placeholder="For example: Jane Smith"
+        >
+
+        <label class="pick-button" for="photoInput">Choose a photo</label>
+        <input id="photoInput" type="file" accept="image/*">
+
+        <img id="preview" alt="Preview of your painting">
+
+        <button id="sendBtn" type="button">Upload painting</button>
+
+        <div id="uploadStatus"></div>
+
+    </div>
+
+</div>
+
+
 <!-- FULL SIZE VIEW -->
 
 <div id="viewer">
@@ -154,89 +334,108 @@ h1 {
 
 <script>
 
-/* GOOGLE APPS SCRIPT */
+/* GOOGLE APPS SCRIPT - reads the gallery */
 
 const API_URL =
 "https://script.google.com/macros/s/AKfycbwn9Uv8UsXz92v8O5Atj6PlJLD4tKXddPNSHzdmCobmJ3BqbQP2UqlUWylRrQP61u3F/exec";
 
 
+/* GOOGLE APPS SCRIPT - saves new uploads (the BCAG Upload script) */
+
+const UPLOAD_URL =
+"https://script.google.com/macros/s/AKfycbyOVQjSAD_ma0T_9B9zojkdLINXdJdW0QN5lwjci88SVGaOJgNRq9Ir0lt-N8cpjNb0Og/exec";
+
+
 let paintings = [];
 
 
-fetch(API_URL)
+/* LOAD THE GALLERY */
 
-    .then(response => response.json())
+function loadGallery() {
 
-    .then(data => {
+    const gallery =
+        document.getElementById("gallery");
 
-        paintings = data;
-
-        const gallery =
-            document.getElementById("gallery");
-
-        const message =
-            document.getElementById("message");
+    const message =
+        document.getElementById("message");
 
 
-        message.style.display = "none";
+    fetch(API_URL + "?t=" + Date.now())
+
+        .then(response => response.json())
+
+        .then(data => {
+
+            paintings = data;
+
+            gallery.innerHTML = "";
+
+            message.style.display = "none";
 
 
-        if (!paintings.length) {
+            if (!paintings.length) {
+
+                message.style.display = "block";
+
+                message.textContent =
+                    "No paintings yet. Add the first one below.";
+
+                return;
+
+            }
+
+
+            paintings.forEach((painting, index) => {
+
+                const card =
+                    document.createElement("div");
+
+
+                card.className =
+                    "painting";
+
+
+                card.innerHTML = `
+
+                    <img
+                        src="${painting.image}"
+                        alt="${escapeHtml(painting.artist)}"
+                    >
+
+                    <div class="painting-artist">
+                        ${escapeHtml(painting.artist)}
+                    </div>
+
+                `;
+
+
+                card.addEventListener(
+                    "click",
+                    () => openViewer(index)
+                );
+
+
+                gallery.appendChild(card);
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
 
             message.style.display = "block";
 
             message.textContent =
-                "No paintings found.";
-
-            return;
-
-        }
-
-
-        paintings.forEach((painting, index) => {
-
-            const card =
-                document.createElement("div");
-
-
-            card.className =
-                "painting";
-
-
-            card.innerHTML = `
-
-                <img
-                    src="${painting.image}"
-                    alt="${escapeHtml(painting.artist)}"
-                >
-
-                <div class="painting-artist">
-                    ${escapeHtml(painting.artist)}
-                </div>
-
-            `;
-
-
-            card.addEventListener(
-                "click",
-                () => openViewer(index)
-            );
-
-
-            gallery.appendChild(card);
+                "The gallery could not be loaded. Check your connection and try again.";
 
         });
 
-    })
+}
 
-    .catch(error => {
 
-        console.error(error);
-
-        document.getElementById("message").textContent =
-            "Sorry — the gallery could not be loaded.";
-
-    });
+loadGallery();
 
 
 
@@ -313,6 +512,219 @@ function escapeHtml(text) {
     return div.innerHTML;
 
 }
+
+
+
+/* ADD YOUR PAINTING */
+
+const uploadPanel = document.getElementById("uploadPanel");
+const artistName = document.getElementById("artistName");
+const photoInput = document.getElementById("photoInput");
+const preview = document.getElementById("preview");
+const sendBtn = document.getElementById("sendBtn");
+const uploadStatus = document.getElementById("uploadStatus");
+
+
+document
+    .getElementById("addBtn")
+    .addEventListener("click", function() {
+
+        uploadStatus.textContent = "";
+
+        uploadPanel.style.display = "block";
+
+    });
+
+
+document
+    .getElementById("closeUpload")
+    .addEventListener("click", closeUpload);
+
+
+uploadPanel.addEventListener("click", function(event) {
+
+    if (event.target === this) {
+
+        closeUpload();
+
+    }
+
+});
+
+
+function closeUpload() {
+
+    uploadPanel.style.display = "none";
+
+}
+
+
+/* show a small preview once a photo is chosen */
+
+photoInput.addEventListener("change", function() {
+
+    const file = photoInput.files[0];
+
+    if (!file) {
+
+        preview.style.display = "none";
+
+        return;
+
+    }
+
+    preview.src = URL.createObjectURL(file);
+
+    preview.style.display = "block";
+
+    uploadStatus.textContent = "";
+
+});
+
+
+/* shrink the photo so it uploads quickly */
+
+function shrinkPhoto(file, maxSize, quality) {
+
+    return new Promise(function(resolve, reject) {
+
+        const url = URL.createObjectURL(file);
+
+        const img = new Image();
+
+
+        img.onload = function() {
+
+            let width = img.naturalWidth;
+            let height = img.naturalHeight;
+
+            const scale =
+                Math.min(1, maxSize / Math.max(width, height));
+
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+
+
+            const canvas = document.createElement("canvas");
+
+            canvas.width = width;
+            canvas.height = height;
+
+            canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+
+            URL.revokeObjectURL(url);
+
+            resolve(
+                canvas.toDataURL("image/jpeg", quality).split(",")[1]
+            );
+
+        };
+
+
+        img.onerror = function() {
+
+            URL.revokeObjectURL(url);
+
+            reject(new Error("Photo could not be read"));
+
+        };
+
+
+        img.src = url;
+
+    });
+
+}
+
+
+/* send it */
+
+sendBtn.addEventListener("click", async function() {
+
+    const name = artistName.value.trim();
+
+    const file = photoInput.files[0];
+
+
+    if (!name) {
+
+        uploadStatus.textContent = "Type your name first.";
+
+        return;
+
+    }
+
+
+    if (!file) {
+
+        uploadStatus.textContent = "Choose a photo first.";
+
+        return;
+
+    }
+
+
+    sendBtn.disabled = true;
+
+    uploadStatus.textContent = "Uploading. This can take a few seconds.";
+
+
+    try {
+
+        const image = await shrinkPhoto(file, 1600, 0.8);
+
+
+        const response = await fetch(UPLOAD_URL, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
+
+            body: JSON.stringify({
+                artist: name,
+                image: image
+            })
+
+        });
+
+
+        const result = await response.text();
+
+
+        if (result.trim() !== "ok") {
+
+            throw new Error("Upload was not accepted");
+
+        }
+
+
+        uploadStatus.textContent = "Painting added.";
+
+        photoInput.value = "";
+
+        preview.style.display = "none";
+
+        loadGallery();
+
+
+        setTimeout(closeUpload, 1500);
+
+    } catch (error) {
+
+        console.error(error);
+
+        uploadStatus.textContent =
+            "The upload did not work. Check your connection and try again.";
+
+    }
+
+
+    sendBtn.disabled = false;
+
+});
 
 </script>
 </body>
