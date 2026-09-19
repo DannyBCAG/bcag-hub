@@ -3,231 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>BCAG Art Group</title>
-
-<link rel="apple-touch-icon"
-href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
-
+<link rel="apple-touch-icon" href="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png">
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #ffffff;
-    color: #333;
-    text-align: center;
-}
-
-.container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px 15px 40px;
-}
-
-.logo {
-    width: 150px;
-    height: 150px;
-    object-fit: contain;
-    margin: 5px auto 10px;
-    display: block;
-}
-
-h1 {
-    margin: 0 0 20px;
-    font-size: 28px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    max-width: 700px;
-    margin: 0 auto 25px;
-}
-
-.card {
-    border: none;
-    background: white;
-    border-radius: 16px;
-    padding: 10px;
-    text-decoration: none;
-    color: #333;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
-
-.card img {
-    width: 100%;
-    max-width: 150px;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    display: block;
-    margin: auto;
-}
-
-.card-title {
-    font-size: 17px;
-    font-weight: bold;
-    margin: 8px 0 5px;
-}
-
-.admin {
-    display: none;
-    max-width: 500px;
-    margin: 12px auto;
-    padding: 16px;
-    border-radius: 14px;
-    text-decoration: none;
-    color: white;
-    background: #555;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.logout {
-    display: block;
-    max-width: 500px;
-    margin: 12px auto;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    color: white;
-    background: #777;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-@media (min-width: 700px) {
-    .grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #ffffff; color: #333; text-align: center; }
+.container { max-width: 900px; margin: 0 auto; padding: 20px 15px 40px; }
+.logo { width: 150px; height: 150px; object-fit: contain; margin: 5px auto 10px; display: block; }
+h1 { margin: 0 0 20px; font-size: 28px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 700px; margin: 0 auto 25px; }
+.card { border: none; background: white; border-radius: 16px; padding: 10px; text-decoration: none; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.card img { width: 100%; max-width: 150px; aspect-ratio: 1 / 1; object-fit: contain; display: block; margin: auto; }
+.card-title { font-size: 17px; font-weight: bold; margin: 8px 0 5px; }
+.admin { display: none; max-width: 500px; margin: 12px auto; padding: 16px; border-radius: 14px; text-decoration: none; color: white; background: #555; font-size: 18px; font-weight: bold; }
+.logout { display: block; max-width: 500px; margin: 12px auto; padding: 16px; border-radius: 14px; border: none; color: white; background: #777; font-size: 18px; font-weight: bold; }
+@media (min-width: 700px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 </style>
 </head>
-
 <body>
-
 <div class="container">
-
-    <img
-        class="logo"
-        src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png"
-        alt="BCAG Art Group"
-    >
-
+    <img class="logo" src="https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png" alt="BCAG Art Group">
     <h1>BCAG Art Group</h1>
-
     <div class="grid">
-
-        <!-- GALLERY -->
         <a class="card" href="newgallery.html">
-            <img
-                src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp"
-                alt="Gallery">
-
+            <img src="https://i.postimg.cc/023jS7L3/808136933-1051379491204172-3868743560053402606-n.webp" alt="Gallery">
             <div class="card-title">Gallery</div>
         </a>
-
-        <!-- TEMPLATES -->
         <a id="templatesCard" class="card" href="templates.html">
-            <img
-                src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp"
-                alt="Templates">
-
+            <img src="https://i.postimg.cc/0yDkJFGm/806473741-3127965240734534-8595088516474064513-n.webp" alt="Templates">
             <div class="card-title">Templates</div>
         </a>
-
-        <!-- MEMBERS GALLERY -->
         <a class="card" href="membersgallery.html">
-
-            <img
-                src="https://i.postimg.cc/W1GV4rjs/806687279-1454810143373747-573763567689125232-n.webp"
-                alt="Members Gallery">
-
+            <img src="https://i.postimg.cc/W1GV4rjs/806687279-1454810143373747-573763567689125232-n.webp" alt="Members Gallery">
             <div class="card-title">Members Gallery</div>
         </a>
-
-        <!-- CALENDAR -->
         <a class="card" href="calendar.html">
-            <img
-                src="https://i.postimg.cc/NLhhsGzr/806515828-1802584224076914-3045022485641698308-n.webp"
-                alt="Calendar">
-
+            <img src="https://i.postimg.cc/NLhhsGzr/806515828-1802584224076914-3045022485641698308-n.webp" alt="Calendar">
             <div class="card-title">Calendar</div>
         </a>
-
-        <!-- ART MATERIALS -->
         <a class="card" href="materials.html">
-            <img
-                src="https://i.postimg.cc/50T9zVr3/807284902-911269448405387-2529296765882370696-n.webp"
-                alt="Art Materials">
-
+            <img src="https://i.postimg.cc/50T9zVr3/807284902-911269448405387-2529296765882370696-n.webp" alt="Art Materials">
             <div class="card-title">Art Materials</div>
         </a>
-
-        <!-- NEWS -->
         <a class="card" href="news.html">
-            <img
-                src="https://i.postimg.cc/VNNzHvQs/news-megaphone-exact-style.png"
-                alt="News">
-
+            <img src="https://i.postimg.cc/VNNzHvQs/news-megaphone-exact-style.png" alt="News">
             <div class="card-title">News</div>
         </a>
-    <!-- ATTENDANCE -->
-    <a class="card" href="attendance.html">
-      <img
-        src="attendance-icon.png"
-        alt="Attendance">
-      <div class="card-title">Attendance</div>
-    </a>
+        <a class="card" href="attendance.html">
+            <img src="attendance-icon.png" alt="Attendance">
+            <div class="card-title">Attendance</div>
+        </a>
+        <!-- FIVE HEADS - ONLY FOR ADMIN -->
+        <a id="fiveHeadsCard" class="card" href="this-weeks-numbers.html" style="display:none; border:3px solid #144FA3;">
+            <img src="five-heads-icon.png" alt="This weeks numbers" onerror="this.src='https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png'">
+            <div class="card-title" style="color:#144FA3;">This weeks numbers</div>
+        </a>
     </div>
 
-    <!-- ADMIN BUTTON - ONLY SHOWN TO ADMIN -->
-    <a id="adminButton" class="admin" href="admin.html">
-        ⚙️ Admin
-    </a>
-
-    <button class="logout" onclick="logout()">
-        Log Out
-    </button>
-
+    <a id="adminButton" class="admin" href="admin.html">⚙️ Admin</a>
+    <button class="logout" onclick="logout()">Log Out</button>
 </div>
 
 <script>
-
 function checkLogin() {
-
     const loggedIn = localStorage.getItem("bcagLoggedIn");
     const role = localStorage.getItem("bcagRole");
-
     if (loggedIn !== "true") {
         window.location.href = "index.html";
         return;
     }
-
     if (role === "admin") {
         document.getElementById("adminButton").style.display = "block";
+        document.getElementById("fiveHeadsCard").style.display = "block";
     } else {
         const templatesCard = document.getElementById("templatesCard");
         templatesCard.style.opacity = "0.4";
         templatesCard.style.pointerEvents = "none";
+        document.getElementById("fiveHeadsCard").style.display = "none";
     }
 }
-
 function logout() {
-
     localStorage.removeItem("bcagLoggedIn");
     localStorage.removeItem("bcagRole");
-
     window.location.href = "index.html";
 }
-
 checkLogin();
-
 </script>
-
 </body>
 </html>
