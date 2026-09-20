@@ -24,30 +24,96 @@ h1{color:#144FA3;font-size:24px;font-weight:900;text-align:center;margin:0}
 <div class="top"><a class="back" href="index.html">← Home</a></div>
 <div class="iconWrap"><div class="icon"><img src="five-heads-icon.png"></div></div>
 <h1>This weeks numbers</h1>
-<div style="text-align:center;margin-top:12px"><span id="forBadge" class="badge"></span><div id="isoLine" style="font-size:11px;color:#999;margin-top:6px;font-family:monospace"></div></div>
-<button id="bigBtn" class="big"><span class="num" id="num">0</span><span class="lbl">Coming — Tap to see list</span><span style="float:right;opacity:.7;font-size:20px" id="plus">+</span></button>
+<div style="text-align:center;margin-top:12px"><span id="forBadge" class="badge"></span></div>
+<button id="bigBtn" class="big"><span class="num" id="num">…</span><span class="lbl">Coming — Tap to see list</span><span style="float:right;opacity:.7;font-size:20px" id="plus">+</span></button>
 <div id="comingList"></div>
-<div class="small"><button id="cantBtn" style="border:none;background:none;color:#6B7280;font-size:13px"><b id="cantNum">0</b> Can't Come <span id="cantArrow">▼</span></button></div>
+<div class="small"><button id="cantBtn" style="border:none;background:none;color:#6B7280;font-size:13px"><b id="cantNum">…</b> Can't Come <span id="cantArrow">▼</span></button></div>
 <div id="cantList"></div>
 <div style="margin-top:32px;background:#F9FAFB;border:1px solid #F3F4F6;border-radius:12px;padding:14px;text-align:center;color:#6B7280;font-size:12px">Sheet auto-deletes after 4 weeks - you keep 3 weeks for money checks. Rolls every Thursday.</div>
 <script>
+var ATT_URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
+var FIRST_SESSION = new Date(2027, 0, 6);
+
 function toISO(d){var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
 function fmt(d){var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return 'Wed '+d.getDate()+' '+months[d.getMonth()]+' — Blackies 1-4pm';}
 function rolloverWed(){var now=new Date();now.setHours(0,0,0,0);var day=now.getDay();var d=new Date(now);if(day===0)d.setDate(now.getDate()+3);else if(day>=1&&day<=3)d.setDate(now.getDate()+(3-day));else d.setDate(now.getDate()+(3-day+7));return d;}
-var rw=rolloverWed();var iso=toISO(rw);
-document.getElementById("forBadge").textContent="For: "+fmt(rw);
-document.getElementById("isoLine").textContent=iso+" • rollover Thu";
-function getSubs(){try{var raw=localStorage.getItem("wc_all_submissions");return raw?JSON.parse(raw):[];}catch(e){return[];}}
-var subs=getSubs();
-var coming=subs.filter(function(s){return (s.attendance&&s.attendance[iso]||'').toLowerCase()==='coming';}).sort(function(a,b){return a.name.localeCompare(b.name);});
-var cant=subs.filter(function(s){var v=(s.attendance&&s.attendance[iso]||'').toLowerCase();return v==='cant'||v.indexOf('cant')>=0;}).sort(function(a,b){return a.name.localeCompare(b.name);});
-document.getElementById("num").textContent=coming.length;
-document.getElementById("cantNum").textContent=cant.length;
-var showC=false,showCant=false;
-document.getElementById("bigBtn").onclick=function(){showC=!showC;document.getElementById("plus").textContent=showC?"−":"+";renderComing();};
-document.getElementById("cantBtn").onclick=function(){showCant=!showCant;document.getElementById("cantArrow").textContent=showCant?"▲":"▼";renderCant();};
-function renderComing(){var div=document.getElementById("comingList");div.innerHTML="";if(!showC)return;if(coming.length===0){div.innerHTML='<div class="card" style="justify-content:center;color:#999;font-size:13px">No one marked coming yet</div>';return;}coming.forEach(function(s){var el=document.createElement("div");el.className="card";el.innerHTML='<span style="font-weight:600;font-size:14px">'+s.name+'</span><span style="font-size:11px;font-weight:800;color:#1FA971;background:#E8F8F0;padding:4px 8px;border-radius:999px">COMING</span>';div.appendChild(el);});}
-function renderCant(){var div=document.getElementById("cantList");div.innerHTML="";if(!showCant)return;if(cant.length===0){div.innerHTML='<div class="card" style="justify-content:center;color:#aaa;background:#F9FAFB">No can\'t-comes</div>';return;}cant.forEach(function(s){var el=document.createElement("div");el.className="card";el.innerHTML='<span style="font-weight:500;font-size:14px;color:#555">'+s.name+'</span><span style="font-size:11px;font-weight:800;color:#D93F3F;background:#FDE8E8;padding:4px 8px;border-radius:999px">CAN\'T</span>';div.appendChild(el);});}
+
+var rw = rolloverWed();
+if (rw < FIRST_SESSION) { rw = new Date(FIRST_SESSION); }
+var iso = toISO(rw);
+document.getElementById("forBadge").textContent = "For: " + fmt(rw);
+
+function classify(v){
+  v = String(v || '').toLowerCase();
+  if (v.indexOf('cant') >= 0 || v.indexOf("can't") >= 0 || v.indexOf('can’t') >= 0) return 'cant';
+  if (v.indexOf('coming') >= 0) return 'coming';
+  return '';
+}
+
+var coming = [], cant = [];
+var showC = false, showCant = false;
+
+function makeCard(personName, label, labelColor, labelBg, nameColor) {
+  var el = document.createElement("div");
+  el.className = "card";
+  var n = document.createElement("span");
+  n.style.cssText = "font-weight:600;font-size:14px;color:" + nameColor;
+  n.textContent = personName;
+  var l = document.createElement("span");
+  l.style.cssText = "font-size:11px;font-weight:800;color:" + labelColor + ";background:" + labelBg + ";padding:4px 8px;border-radius:999px";
+  l.textContent = label;
+  el.appendChild(n);
+  el.appendChild(l);
+  return el;
+}
+
+function renderComing(){
+  var div = document.getElementById("comingList");
+  div.innerHTML = "";
+  if (!showC) return;
+  if (coming.length === 0) {
+    div.innerHTML = '<div class="card" style="justify-content:center;color:#999;font-size:13px">No one marked coming yet</div>';
+    return;
+  }
+  coming.forEach(function(s){ div.appendChild(makeCard(s.name, "COMING", "#1FA971", "#E8F8F0", "#222")); });
+}
+
+function renderCant(){
+  var div = document.getElementById("cantList");
+  div.innerHTML = "";
+  if (!showCant) return;
+  if (cant.length === 0) {
+    div.innerHTML = '<div class="card" style="justify-content:center;color:#aaa;background:#F9FAFB">No can\'t-comes</div>';
+    return;
+  }
+  cant.forEach(function(s){ div.appendChild(makeCard(s.name, "CAN'T", "#D93F3F", "#FDE8E8", "#555")); });
+}
+
+document.getElementById("bigBtn").onclick = function(){ showC = !showC; document.getElementById("plus").textContent = showC ? "−" : "+"; renderComing(); };
+document.getElementById("cantBtn").onclick = function(){ showCant = !showCant; document.getElementById("cantArrow").textContent = showCant ? "▲" : "▼"; renderCant(); };
+
+fetch(ATT_URL)
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var subs = d.submissions || [];
+    subs.forEach(function(s){
+      var c = classify(s.attendance && s.attendance[iso]);
+      if (c === 'coming') coming.push(s);
+      else if (c === 'cant') cant.push(s);
+    });
+    var byName = function(a, b){ return a.name.localeCompare(b.name); };
+    coming.sort(byName);
+    cant.sort(byName);
+    document.getElementById("num").textContent = coming.length;
+    document.getElementById("cantNum").textContent = cant.length;
+    renderComing();
+    renderCant();
+  })
+  .catch(function(){
+    document.getElementById("num").textContent = "?";
+    document.getElementById("cantNum").textContent = "?";
+    document.getElementById("comingList").innerHTML = '<div class="card" style="justify-content:center;color:#D93F3F;font-size:13px">Could not load numbers. Please try again.</div>';
+  });
 </script>
 </body>
 </html>
