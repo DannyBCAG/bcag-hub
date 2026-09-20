@@ -12,10 +12,13 @@
   .card img { width: 100%; border-radius: 8px; display: block; }
   .num { font-weight: bold; color: #1a4b8c; padding: 4px 0; }
   #viewer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10; text-align: center; overflow: auto; }
-  #viewer img { max-width: 96%; max-height: 78%; margin-top: 50px; border-radius: 8px; }
+  #viewer img { max-width: 96%; max-height: 70%; margin-top: 50px; border-radius: 8px; }
   #viewer .vnum { color: #fff; font-size: 22px; font-weight: bold; margin-top: 10px; }
   #viewer .hint { color: #ccc; font-size: 14px; margin: 6px 12px; }
-  #viewer button { background: #1a4b8c; color: #fff; border: 0; border-radius: 20px; padding: 10px 24px; font-size: 16px; margin-top: 8px; }
+  #viewer button { background: #1a4b8c; color: #fff; border: 0; border-radius: 20px; padding: 10px 24px; font-size: 16px; margin: 8px 4px 0; }
+  #nameBox { display: none; margin-top: 10px; }
+  #nameBox input { font-size: 16px; padding: 10px; border-radius: 10px; border: 0; width: 70%; max-width: 300px; }
+  #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a4b8c; color: #fff; padding: 14px 22px; border-radius: 20px; font-size: 17px; font-weight: bold; z-index: 20; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
 </style>
 </head>
 <body>
@@ -23,26 +26,91 @@
 <h2>Gallery</h2>
 <div class="grid" id="grid">Loading...</div>
 
+<div id="toast"></div>
+
 <div id="viewer">
   <img id="big" src="">
   <div class="vnum" id="vnum"></div>
   <div class="hint">Press and hold the picture, then tap Save to Photos</div>
-  <button onclick="closeViewer()">Close</button>
+  <div>
+    <button onclick="requestTemplate()">Request Template</button>
+    <button onclick="closeViewer()">Close</button>
+  </div>
+  <div id="nameBox">
+    <input type="text" id="nameInput" placeholder="Your name">
+    <br>
+    <button onclick="sendRequest()">Send request</button>
+  </div>
 </div>
 
 <script>
-var URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=paintings';
+var PAINTINGS_URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=paintings';
+var TEMPLATES_URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=templates';
+var REQUESTS_URL = 'https://script.google.com/macros/s/AKfycbxwkGMuEaEAXL1TwVECnuf3MXMWSwiaCCWuyi69t1MFVU4ijjBEV7DTAiJuZ6HhaFjKhA/exec';
+
+var templateNumbers = {};
+var templatesLoaded = false;
+var currentNumber = null;
+var toastTimer = null;
+
+function showToast(message) {
+  var t = document.getElementById('toast');
+  t.innerText = message;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    t.style.display = 'none';
+  }, 3000);
+}
 
 function openViewer(thumb, num) {
+  currentNumber = num;
   document.getElementById('big').src = thumb.replace('sz=w400', 'sz=w1600');
   document.getElementById('vnum').innerText = 'No. ' + num;
+  document.getElementById('nameBox').style.display = 'none';
+  document.getElementById('nameInput').value = '';
   document.getElementById('viewer').style.display = 'block';
 }
 function closeViewer() {
   document.getElementById('viewer').style.display = 'none';
 }
 
-fetch(URL).then(function (r) { return r.json(); }).then(function (d) {
+function requestTemplate() {
+  if (!templatesLoaded) {
+    showToast('Please try again in a moment');
+    return;
+  }
+  if (!templateNumbers[currentNumber]) {
+    showToast('This is freehand (no template)');
+    return;
+  }
+  document.getElementById('nameBox').style.display = 'block';
+}
+
+function sendRequest() {
+  var name = document.getElementById('nameInput').value.trim();
+  if (name === '') {
+    showToast('Please type your name');
+    return;
+  }
+  fetch(REQUESTS_URL + '?action=add&number=' + encodeURIComponent(currentNumber) + '&name=' + encodeURIComponent(name))
+    .then(function (r) { return r.json(); })
+    .then(function () {
+      showToast('Request sent');
+      closeViewer();
+    })
+    .catch(function () {
+      showToast('Sorry, that did not send. Please try again');
+    });
+}
+
+fetch(TEMPLATES_URL).then(function (r) { return r.json(); }).then(function (d) {
+  var list = d.templates || [];
+  list.forEach(function (t) { templateNumbers[t.number] = true; });
+  templatesLoaded = true;
+});
+
+fetch(PAINTINGS_URL).then(function (r) { return r.json(); }).then(function (d) {
   var html = '';
   d.paintings.forEach(function (p) {
     html += '<div class="card" onclick="openViewer(\'' + p.thumb + '\',' + p.number + ')">' +
