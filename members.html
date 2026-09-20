@@ -62,6 +62,11 @@ h1 { margin: 0 0 20px; font-size: 28px; }
             <img src="five-heads-icon.png" alt="This weeks numbers" onerror="this.src='https://i.postimg.cc/Kzr3r4n8/bcag-main-transparent.png'">
             <div class="card-title" style="color:#144FA3;">This weeks numbers</div>
         </a>
+        <!-- TEMPLATE REQUESTS - ONLY FOR ADMIN -->
+        <a id="requestsCard" class="card" href="templaterequests.html" style="display:none; border:3px solid #144FA3;">
+            <img src="requests.png" alt="Template Requests">
+            <div class="card-title" style="color:#144FA3;">Template Requests</div>
+        </a>
     </div>
 
     <a id="adminButton" class="admin" href="admin.html">⚙️ Admin</a>
@@ -79,11 +84,13 @@ function checkLogin() {
     if (role === "admin") {
         document.getElementById("adminButton").style.display = "block";
         document.getElementById("fiveHeadsCard").style.display = "block";
+        document.getElementById("requestsCard").style.display = "block";
     } else {
         const templatesCard = document.getElementById("templatesCard");
         templatesCard.style.opacity = "0.4";
         templatesCard.style.pointerEvents = "none";
         document.getElementById("fiveHeadsCard").style.display = "none";
+        document.getElementById("requestsCard").style.display = "none";
     }
 }
 function logout() {
