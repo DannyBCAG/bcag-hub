@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drive Test</title>
+<style>
+  body { font-family: sans-serif; background: #ece6f5; margin: 0; padding: 12px; }
+  h2 { text-align: center; color: #1a4b8c; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .card { background: #fff; border-radius: 10px; padding: 6px; text-align: center; }
+  .card img { width: 100%; border-radius: 8px; }
+  .num { font-weight: bold; color: #1a4b8c; }
+</style>
+</head>
+<body>
+<h2>Paintings</h2>
+<div class="grid" id="paintings">Loading...</div>
+<h2>Templates</h2>
+<div class="grid" id="templates">Loading...</div>
+<script>
+var URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec';
+function show(id, items) {
+  document.getElementById(id).innerHTML = items.map(function (p) {
+    return '<div class="card"><img src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
+  }).join('');
+}
+fetch(URL).then(function (r) { return r.json(); }).then(function (d) {
+  show('paintings', d.paintings);
+  show('templates', d.templates);
+});
+</script>
+</body>
+</html>
