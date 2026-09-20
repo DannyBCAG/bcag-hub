@@ -63,6 +63,24 @@ function showToast(message) {
   }, 3000);
 }
 
+function loadTemplates(done) {
+  if (templatesLoaded) {
+    done();
+    return;
+  }
+  fetch(TEMPLATES_URL)
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var list = d.templates || [];
+      list.forEach(function (t) { templateNumbers[t.number] = true; });
+      templatesLoaded = true;
+      done();
+    })
+    .catch(function () {
+      showToast('Could not check templates. Please try again');
+    });
+}
+
 function openViewer(thumb, num) {
   currentNumber = num;
   document.getElementById('big').src = thumb.replace('sz=w400', 'sz=w1600');
@@ -77,14 +95,15 @@ function closeViewer() {
 
 function requestTemplate() {
   if (!templatesLoaded) {
-    showToast('Please try again in a moment');
-    return;
+    showToast('Checking for a template...');
   }
-  if (!templateNumbers[currentNumber]) {
-    showToast('This is freehand (no template)');
-    return;
-  }
-  document.getElementById('nameBox').style.display = 'block';
+  loadTemplates(function () {
+    if (!templateNumbers[currentNumber]) {
+      showToast('This is freehand (no template)');
+      return;
+    }
+    document.getElementById('nameBox').style.display = 'block';
+  });
 }
 
 function sendRequest() {
@@ -104,12 +123,6 @@ function sendRequest() {
     });
 }
 
-fetch(TEMPLATES_URL).then(function (r) { return r.json(); }).then(function (d) {
-  var list = d.templates || [];
-  list.forEach(function (t) { templateNumbers[t.number] = true; });
-  templatesLoaded = true;
-});
-
 fetch(PAINTINGS_URL).then(function (r) { return r.json(); }).then(function (d) {
   var html = '';
   d.paintings.forEach(function (p) {
@@ -118,6 +131,8 @@ fetch(PAINTINGS_URL).then(function (r) { return r.json(); }).then(function (d) {
   });
   document.getElementById('grid').innerHTML = html;
 });
+
+loadTemplates(function () {});
 </script>
 </body>
 </html>
