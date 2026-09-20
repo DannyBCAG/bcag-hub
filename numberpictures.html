@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number the pictures</title>
+<style>
+  body { font-family: sans-serif; background: #ece6f5; margin: 0; padding: 12px; }
+  .back { display: inline-block; margin-bottom: 8px; color: #1a4b8c; font-weight: bold; text-decoration: none; }
+  h2 { text-align: center; color: #1a4b8c; margin: 4px 0 10px; }
+  h3 { color: #1a4b8c; margin: 18px 0 6px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tab { flex: 1; padding: 10px; border: 0; border-radius: 20px; background: #fff; color: #1a4b8c; font-size: 16px; font-weight: bold; }
+  .tab.on { background: #1a4b8c; color: #fff; }
+  .info { background: #fff; border-radius: 10px; padding: 10px; text-align: center; font-size: 15px; color: #333; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .card { background: #fff; border-radius: 10px; padding: 4px; text-align: center; }
+  .card img { width: 100%; border-radius: 8px; display: block; }
+  .card.taken { opacity: 0.3; }
+  .card.mine { outline: 3px solid #1a4b8c; }
+  .num { font-weight: bold; color: #1a4b8c; padding: 4px 0; font-size: 14px; }
+  .empty { color: #666; font-size: 14px; }
+  #viewer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 10; overflow: auto; padding: 12px; }
+  .panel { background: #fff; border-radius: 14px; padding: 12px; max-width: 500px; margin: 0 auto; text-align: center; }
+  .panel img.big { width: 100%; border-radius: 8px; }
+  .panel input { font-size: 22px; width: 100px; text-align: center; padding: 8px; margin: 10px 0; }
+  .btn { display: block; width: 100%; border: 0; border-radius: 20px; padding: 12px; font-size: 16px; margin-top: 8px; background: #1a4b8c; color: #fff; }
+  .btn.grey { background: #777; }
+  #msg { color: #b00020; font-weight: bold; min-height: 20px; }
+</style>
+</head>
+<body>
+<a class="back" href="members.html">&larr; Back</a>
+<h2>Number the pictures</h2>
+<div class="tabs">
+  <button id="tabP" class="tab on" onclick="setTab('paintings')">Paintings</button>
+  <button id="tabT" class="tab" onclick="setTab('templates')">Templates</button>
+</div>
+<div class="info" id="info">Loading...</div>
+<div id="content"></div>
+<div id="viewer"><div class="panel" id="panel"></div></div>
+
+<script>
+if (localStorage.getItem('bcagRole') !== 'admin') {
+  window.location.href = 'members.html';
+}
+
+var API = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec';
+var KEY = localStorage.getItem('bcagKey') || '';
+var data = { paintings: [], templates: [] };
+var tab = 'paintings';
+var current = null;
+
+function highest(list) {
+  var m = 0;
+  list.forEach(function (i) { if (i.number && i.number > m) m = i.number; });
+  return m;
+}
+
+function askKey() {
+  var k = prompt('Type the admin key (the admin password you put into the script)');
+  if (!k) { window.location.href = 'members.html'; return false; }
+  KEY = k;
+  localStorage.setItem('bcagKey', k);
+  return true;
+}
+
+function load() {
+  if (!KEY && !askKey()) return;
+  fetch(API + '?type=admin&key=' + encodeURIComponent(KEY))
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.error) {
+        localStorage.removeItem('bcagKey');
+        KEY = '';
+        alert('That key was not right. Please try again.');
+        load();
+        return;
+      }
+      data = d;
+      render();
+    })
+    .catch(function () {
+      document.getElementById('info').innerText = 'Could not load. Check your internet and refresh.';
+    });
+}
+
+function setTab(t) {
+  tab = t;
+  document.getElementById('tabP').className = 'tab' + (t === 'paintings' ? ' on' : '');
+  document.getElementById('tabT').className = 'tab' + (t === 'templates' ? ' on' : '');
+  render();
+}
+
+function gridHtml(items, labelFn) {
+  if (!items.length) return '<div class="empty">None</div>';
+  return '<div class="grid">' + items.map(function (i) {
+    return '<div class="card" onclick="openItem(\'' + i.id + '\')"><img src="' + i.thumb + '" loading="lazy"><div class="num">' + labelFn(i) + '</div></div>';
+  }).join('') + '</div>';
+}
+
+function render() {
+  var list = data[tab];
+  var numbered = list.filter(function (i) { return i.number !== null && !i.leftOut; });
+  var todo = list.filter(function (i) { return i.number === null && !i.leftOut; });
+  var left = list.filter(function (i) { return i.leftOut; });
+  var h = highest(list);
+  var info = 'Highest number used: ' + h + ' &middot; Next free: ' + (h + 1) + ' &middot; To number: ' + todo.length;
+  if (tab === 'templates') {
+    var have = {};
+    data.templates.forEach(function (t) { if (t.number) have[t.number] = true; });
+    var need = data.paintings
+      .filter(function (p) { return p.number !== null && !p.leftOut && !have[p.number]; })
+      .map(function (p) { return p.number; });
+    info += '<br>Paintings still needing a template: ' + need.length;
+    if (need.length) info += ' (' + need.slice(0, 40).join(', ') + (need.length > 40 ? '...' : '') + ')';
+  }
+  document.getElementById('info').innerHTML = info;
+  document.getElementById('content').innerHTML =
+    '<h3>To number</h3>' + gridHtml(todo, function () { return 'Tap to number'; }) +
+    '<h3>Numbered</h3>' + gridHtml(numbered, function (i) { return i.number; }) +
+    '<h3>Left out</h3>' + gridHtml(left, function () { return 'Left out'; });
+}
+
+function findItem(id) {
+  var list = data[tab];
+  for (var i = 0; i < list.length; i++) { if (list[i].id === id) return list[i]; }
+  return null;
+}
+
+function openItem(id) {
+  current = findItem(id);
+  if (!current) return;
+  var html = '<img class="big" src="' + current.thumb.replace('sz=w400', 'sz=w1000') + '">';
+  if (current.leftOut) {
+    html += '<p>This picture is left out of the app.</p>';
+  } else if (tab === 'paintings') {
+    var val = current.number || (highest(data.paintings) + 1);
+    html += '<div>Number:</div><input id="numbox" type="number" inputmode="numeric" value="' + val + '">' +
+            '<button class="btn" onclick="saveNumber()">Save number</button>';
+  } else {
+    html += '<p>Tap the painting this template matches:</p><div class="grid">';
+    data.paintings.filter(function (p) { return p.number !== null && !p.leftOut; }).forEach(function (p) {
+      var taken = data.templates.some(function (t) { return t.number === p.number && t.id !== current.id; });
+      var mine = current.number === p.number;
+      html += '<div class="card' + (taken ? ' taken' : '') + (mine ? ' mine' : '') + '" onclick="act(\'setnumber\',' + p.number + ')">' +
+              '<img src="' + p.thumb + '" loading="lazy"><div class="num">' + p.number + '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '<div id="msg"></div>';
+  if (current.leftOut) {
+    html += '<button class="btn" onclick="act(\'restore\')">Put back</button>';
+  } else {
+    html += '<button class="btn grey" onclick="act(\'leaveout\')">Leave out of the app</button>';
+  }
+  html += '<button class="btn grey" onclick="closeViewer()">Close</button>';
+  document.getElementById('panel').innerHTML = html;
+  document.getElementById('viewer').style.display = 'block';
+}
+
+function closeViewer() {
+  document.getElementById('viewer').style.display = 'none';
+}
+
+function msg(t) {
+  var m = document.getElementById('msg');
+  if (m) m.innerText = t;
+}
+
+function saveNumber() {
+  var n = parseInt(document.getElementById('numbox').value, 10);
+  if (!n || n < 1) { msg('Please type a number'); return; }
+  act('setnumber', n);
+}
+
+function act(action, number) {
+  var url = API + '?action=' + action + '&type=' + tab + '&id=' + current.id + '&key=' + encodeURIComponent(KEY);
+  if (number) url += '&number=' + number;
+  msg('Saving...');
+  fetch(url)
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.error) { msg(d.error); return; }
+      closeViewer();
+      load();
+    })
+    .catch(function () { msg('Could not save. Please try again.'); });
+}
+
+load();
+</script>
+</body>
+</html>
