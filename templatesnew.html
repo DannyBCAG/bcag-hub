@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Templates</title>
+<style>
+  body { font-family: sans-serif; background: #ece6f5; margin: 0; padding: 12px; }
+  .back { display: inline-block; margin-bottom: 8px; color: #1a4b8c; font-weight: bold; text-decoration: none; }
+  h2 { text-align: center; color: #1a4b8c; margin: 4px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .card { background: #fff; border-radius: 10px; padding: 4px; text-align: center; }
+  .card img { width: 100%; border-radius: 8px; display: block; }
+  .num { font-weight: bold; color: #1a4b8c; padding: 4px 0; }
+  #viewer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10; text-align: center; overflow: auto; }
+  #viewer img { max-width: 96%; max-height: 78%; margin-top: 50px; border-radius: 8px; background: #fff; }
+  #viewer .vnum { color: #fff; font-size: 22px; font-weight: bold; margin-top: 10px; }
+  #viewer .hint { color: #ccc; font-size: 14px; margin: 6px 12px; }
+  #viewer button { background: #1a4b8c; color: #fff; border: 0; border-radius: 20px; padding: 10px 24px; font-size: 16px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<a class="back" href="members.html">&larr; Back</a>
+<h2>Templates</h2>
+<div class="grid" id="grid">Loading...</div>
+
+<div id="viewer">
+  <img id="big" src="">
+  <div class="vnum" id="vnum"></div>
+  <div class="hint">Press and hold the picture, then tap Save to Photos</div>
+  <button onclick="closeViewer()">Close</button>
+</div>
+
+<script>
+if (localStorage.getItem('bcagRole') !== 'admin') {
+  window.location.href = 'members.html';
+}
+
+var URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=templates';
+
+function openViewer(thumb, num) {
+  document.getElementById('big').src = thumb.replace('sz=w400', 'sz=w1600');
+  document.getElementById('vnum').innerText = 'Template ' + num;
+  document.getElementById('viewer').style.display = 'block';
+}
+function closeViewer() {
+  document.getElementById('viewer').style.display = 'none';
+}
+
+fetch(URL).then(function (r) { return r.json(); }).then(function (d) {
+  var html = '';
+  d.templates.forEach(function (p) {
+    html += '<div class="card" onclick="openViewer(\'' + p.thumb + '\',' + p.number + ')">' +
+            '<img src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
+  });
+  document.getElementById('grid').innerHTML = html;
+});
+</script>
+</body>
+</html>
