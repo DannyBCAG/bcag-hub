@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number the pictures</title>
+<style>
+  :root {
+    --blue: #2f5fa7;
+    --blue-dark: #234a85;
+    --violet: #f1ecf8;
+    --ink: #1f2a3a;
+    --red: #b3372f;
+    --grey: #6b7686;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 0 40px;
+    background: var(--violet);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+  }
+  .bar {
+    background: var(--blue);
+    color: #fff;
+    padding: 14px 16px;
+    border-radius: 0 0 22px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .bar a { color: #fff; text-decoration: none; font-size: 17px; }
+  .bar h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  .wrap { padding: 14px 14px 0; max-width: 1000px; margin: 0 auto; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tabs button {
+    flex: 1; padding: 12px; font-size: 17px; border-radius: 12px;
+    border: 2px solid var(--blue); background: #fff; color: var(--blue);
+  }
+  .tabs button.on { background: var(--blue); color: #fff; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chips button {
+    padding: 8px 12px; font-size: 15px; border-radius: 999px;
+    border: 1px solid #b9b0cc; background: #fff; color: var(--ink);
+  }
+  .chips button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .info { color: var(--grey); font-size: 15px; margin: 0 0 12px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: 8px;
+  }
+  .tile {
+    position: relative; aspect-ratio: 1; border-radius: 10px;
+    overflow: hidden; background: #ddd; cursor: pointer;
+  }
+  .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile .badge {
+    position: absolute; top: 6px; left: 6px;
+    background: var(--blue); color: #fff; font-weight: 700;
+    min-width: 28px; padding: 2px 8px; border-radius: 999px; text-align: center;
+    font-size: 15px;
+  }
+  .tile .badge.none { background: #fff; color: var(--grey); font-weight: 600; }
+  .tile.left img { opacity: 0.35; }
+  .tile .badge.out { background: var(--grey); }
+
+  .empty { padding: 30px 10px; text-align: center; color: var(--grey); }
+
+  /* Unlock box */
+  .box {
+    background: #fff; border-radius: 16px; padding: 18px; margin: 20px auto;
+    max-width: 420px; text-align: center;
+  }
+  .box input {
+    width: 100%; padding: 12px; font-size: 18px; border-radius: 10px;
+    border: 1px solid #b9b0cc; margin: 10px 0;
+  }
+  .box .msg { color: var(--red); min-height: 22px; }
+
+  /* Picture window */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(20, 25, 40, 0.6);
+    display: none; align-items: flex-start; justify-content: center;
+    overflow-y: auto; padding: 16px;
+  }
+  .overlay.show { display: flex; }
+  .sheet {
+    background: #fff; border-radius: 18px; padding: 14px;
+    width: 100%; max-width: 520px; margin: auto;
+  }
+  .sheet img.big { width: 100%; max-height: 55vh; object-fit: contain; border-radius: 10px; background: #eee; }
+  .sheet label { display: block; margin: 12px 0 4px; font-weight: 600; }
+  .sheet input[type=number] {
+    width: 100%; padding: 12px; font-size: 22px; border-radius: 10px;
+    border: 2px solid var(--blue); text-align: center;
+  }
+  .match { display: flex; align-items: center; gap: 10px; margin-top: 10px; color: var(--grey); font-size: 15px; }
+  .match img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+  .btn {
+    display: block; width: 100%; padding: 14px; margin-top: 10px;
+    font-size: 18px; border-radius: 12px; border: 0; cursor: pointer;
+  }
+  .btn.save { background: var(--blue); color: #fff; font-weight: 600; }
+  .btn.out { background: #e6e9ef; color: var(--ink); }
+  .btn.del { background: #fff; color: var(--red); border: 2px solid var(--red); }
+  .btn.close { background: transparent; color: var(--grey); }
+  .btn:disabled { opacity: 0.5; }
+  .err { color: var(--red); margin-top: 8px; min-height: 20px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px;
+    display: none; font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a href="members.html">&larr; Back</a>
+  <h1>Number the pictures</h1>
+</div>
+
+<div class="wrap">
+
+  <!-- Shown if not admin -->
+  <div id="notAdmin" class="box" hidden>
+    <p>This page is for the admin only. Please log in as admin from the start page.</p>
+    <a href="index.html">Go to login</a>
+  </div>
+
+  <!-- Admin password box -->
+  <div id="unlock" class="box" hidden>
+    <p>Type your admin password once. This iPad will remember it.</p>
+    <input id="keyInput" type="password" placeholder="Admin password" autocomplete="off">
+    <div class="msg" id="keyMsg"></div>
+    <button class="btn save" id="keyBtn">Unlock</button>
+  </div>
+
+  <!-- Main screen -->
+  <div id="main" hidden>
+    <div class="tabs">
+      <button id="tabPaintings" class="on">Paintings</button>
+      <button id="tabTemplates">Templates</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <p class="info" id="info"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div id="loading" class="empty">Loading pictures&hellip; this can take a few seconds.</div>
+</div>
+
+<!-- Picture window -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <img class="big" id="bigImg" alt="">
+    <label for="numInput">Number</label>
+    <input id="numInput" type="number" inputmode="numeric" min="1">
+    <div class="match" id="match"></div>
+    <div class="err" id="err"></div>
+    <button class="btn save" id="saveBtn">Save number</button>
+    <button class="btn out" id="outBtn">Leave out</button>
+    <button class="btn del" id="delBtn">Delete</button>
+    <button class="btn close" id="closeBtn">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec';
+
+var role = localStorage.getItem('bcagRole');
+var key = localStorage.getItem('bcagAdminKey') || '';
+var data = { paintings: [], templates: [] };
+var tab = 'paintings';
+var filter = 'unnumbered';
+var current = null;
+
+function $(id) { return document.getElementById(id); }
+
+function api(params) {
+  var qs = Object.keys(params).map(function (k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(SCRIPT_URL + '?' + qs).then(function (r) { return r.json(); });
+}
+
+function toast(text) {
+  var t = $('toast');
+  t.textContent = text;
+  t.style.display = 'block';
+  setTimeout(function () { t.style.display = 'none'; }, 2200);
+}
+
+/* ---------- Start up ---------- */
+if (role !== 'admin') {
+  $('loading').hidden = true;
+  $('notAdmin').hidden = false;
+} else if (!key) {
+  $('loading').hidden = true;
+  $('unlock').hidden = false;
+} else {
+  load();
+}
+
+$('keyBtn').onclick = function () {
+  var v = $('keyInput').value.trim();
+  if (!v) { $('keyMsg').textContent = 'Please type the admin password.'; return; }
+  key = v;
+  localStorage.setItem('bcagAdminKey', key);
+  $('unlock').hidden = true;
+  $('loading').hidden = false;
+  load();
+};
+
+function load() {
+  $('main').hidden = true;
+  $('loading').hidden = false;
+  api({ type: 'admin', key: key }).then(function (d) {
+    if (d.error) {
+      localStorage.removeItem('bcagAdminKey');
+      key = '';
+      $('loading').hidden = true;
+      $('unlock').hidden = false;
+      $('keyMsg').textContent = 'That password did not work. Please try again.';
+      return;
+    }
+    data = d;
+    $('loading').hidden = true;
+    $('main').hidden = false;
+    render();
+  }).catch(function () {
+    $('loading').textContent = 'Could not load. Check your internet and refresh the page.';
+  });
+}
+
+/* ---------- Helpers ---------- */
+function state(item) {
+  if (item.leftOut) return 'left';
+  if (item.number !== null && item.number !== undefined) return 'numbered';
+  return 'unnumbered';
+}
+
+function lastNumber(list) {
+  var m = 0;
+  list.forEach(function (i) { if (i.number && i.number > m) m = i.number; });
+  return m;
+}
+
+function bigThumb(url) { return url.replace('sz=w400', 'sz=w1000'); }
+
+/* ---------- Drawing the screen ---------- */
+function render() {
+  var list = data[tab];
+  var counts = { unnumbered: 0, numbered: 0, left: 0 };
+  list.forEach(function (i) { counts[state(i)]++; });
+
+  $('tabPaintings').className = tab === 'paintings' ? 'on' : '';
+  $('tabTemplates').className = tab === 'templates' ? 'on' : '';
+
+  var chips = [
+    ['unnumbered', 'To number (' + counts.unnumbered + ')'],
+    ['numbered', 'Numbered (' + counts.numbered + ')'],
+    ['left', 'Left out (' + counts.left + ')'],
+    ['all', 'All (' + list.length + ')']
+  ];
+  $('chips').innerHTML = '';
+  chips.forEach(function (c) {
+    var b = document.createElement('button');
+    b.textContent = c[1];
+    if (filter === c[0]) b.className = 'on';
+    b.onclick = function () { filter = c[0]; render(); };
+    $('chips').appendChild(b);
+  });
+
+  var last = lastNumber(list);
+  $('info').textContent = 'Last number used: ' + (last || 'none yet') + '. Tap a picture to change it.';
+
+  var shown = list.filter(function (i) { return filter === 'all' || state(i) === filter; });
+  $('grid').innerHTML = '';
+  if (!shown.length) {
+    $('grid').innerHTML = '<div class="empty">Nothing here.</div>';
+    return;
+  }
+  shown.forEach(function (item) {
+    var d = document.createElement('div');
+    var s = state(item);
+    d.className = 'tile' + (s === 'left' ? ' left' : '');
+    var badge = s === 'numbered' ? '<span class="badge">' + item.number + '</span>'
+              : s === 'left' ? '<span class="badge out">Left out</span>'
+              : '<span class="badge none">?</span>';
+    d.innerHTML = '<img loading="lazy" src="' + item.thumb + '" alt="">' + badge;
+    d.onclick = function () { openSheet(item); };
+    $('grid').appendChild(d);
+  });
+}
+
+$('tabPaintings').onclick = function () { tab = 'paintings'; render(); };
+$('tabTemplates').onclick = function () { tab = 'templates'; render(); };
+
+/* ---------- Picture window ---------- */
+function openSheet(item) {
+  current = item;
+  $('bigImg').src = bigThumb(item.thumb);
+  var s = state(item);
+  $('numInput').value = s === 'numbered' ? item.number : (lastNumber(data[tab]) + 1);
+  $('outBtn').textContent = s === 'left' ? 'Put back in the app' : 'Leave out';
+  $('err').textContent = '';
+  setBusy(false);
+  updateMatch();
+  $('overlay').classList.add('show');
+}
+
+function closeSheet() {
+  $('overlay').classList.remove('show');
+  current = null;
+}
+
+function setBusy(b) {
+  ['saveBtn', 'outBtn', 'delBtn', 'closeBtn'].forEach(function (id) { $(id).disabled = b; });
+  if (b) $('err').textContent = 'Working\u2026';
+}
+
+function updateMatch() {
+  var box = $('match');
+  box.innerHTML = '';
+  if (tab !== 'templates') return;
+  var n = parseInt($('numInput').value, 10);
+  if (!n) return;
+  var p = data.paintings.filter(function (i) { return i.number === n; })[0];
+  if (p) {
+    box.innerHTML = '<img src="' + p.thumb + '" alt=""><span>Painting ' + n + ' looks like this.</span>';
+  } else {
+    box.textContent = 'There is no painting numbered ' + n + ' yet.';
+  }
+}
+$('numInput').oninput = updateMatch;
+$('closeBtn').onclick = closeSheet;
+
+function act(params) {
+  var base = { key: key, type: tab, id: current.id };
+  Object.keys(params).forEach(function (k) { base[k] = params[k]; });
+  return api(base).then(function (r) {
+    if (r.error) throw new Error(r.error);
+    return r;
+  });
+}
+
+function fail(e) {
+  setBusy(false);
+  $('err').textContent = (e && e.message) ? e.message : 'Something went wrong. Please try again.';
+}
+
+$('saveBtn').onclick = function () {
+  var n = parseInt($('numInput').value, 10);
+  if (!n || n < 1) { $('err').textContent = 'Please type a number.'; return; }
+  setBusy(true);
+  act({ action: 'setnumber', number: n }).then(function () {
+    current.number = n;
+    current.name = String(n);
+    current.leftOut = false;
+    closeSheet();
+    render();
+    toast('Saved as ' + n);
+  }).catch(fail);
+};
+
+$('outBtn').onclick = function () {
+  var isLeft = current.leftOut;
+  setBusy(true);
+  act({ action: isLeft ? 'restore' : 'leaveout' }).then(function () {
+    if (isLeft) {
+      current.name = current.name.substring(2);
+      current.leftOut = false;
+      current.number = /^\d+$/.test(current.name) ? parseInt(current.name, 10) : null;
+    } else {
+      current.name = 'x-' + current.name;
+      current.leftOut = true;
+      current.number = null;
+    }
+    closeSheet();
+    render();
+    toast(isLeft ? 'Put back' : 'Left out');
+  }).catch(fail);
+};
+
+$('delBtn').onclick = function () {
+  if (!confirm('Delete this picture? It goes into your Google Drive bin, where you can get it back for 30 days.')) return;
+  setBusy(true);
+  act({ action: 'delete' }).then(function () {
+    closeSheet();
+    toast('Deleted');
+    load(); // reload from Drive so the screen always shows the truth
+  }).catch(fail);
+};
+</script>
+</body>
+</html>
