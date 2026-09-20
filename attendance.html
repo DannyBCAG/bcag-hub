@@ -34,12 +34,16 @@ h1{color:#144FA3;font-size:22px;margin:0;font-weight:900}
 <div class="note">Choose your answers, then tap Save</div>
 <script>
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbyWHfyVjraKYJJQf6c0Q2nYKvMPIDhNr6R_nuWXeTmQYhmV_JOVwtNLwiM_UGU9MDHo/exec";
+var FIRST_SESSION = new Date(2027, 0, 6);
 function toISO(d){var y=d.getFullYear();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
 function fmt(d){var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return 'Wed '+d.getDate()+' '+months[d.getMonth()]+' — Blackies 1-4pm';}
-function next4Weds(){var t=new Date();t.setHours(0,0,0,0);var off=(3-t.getDay()+7)%7;var f=new Date(t);f.setDate(t.getDate()+off);return Array.from({length:4},function(_,i){var d=new Date(f);d.setDate(f.getDate()+i*7);return d;});}
+function next4Weds(){var t=new Date();t.setHours(0,0,0,0);var off=(3-t.getDay()+7)%7;var f=new Date(t);f.setDate(t.getDate()+off);if(f<FIRST_SESSION){f=new Date(FIRST_SESSION);}return Array.from({length:4},function(_,i){var d=new Date(f);d.setDate(f.getDate()+i*7);return d;});}
 var weds=next4Weds();
+var shownDates=weds.map(function(d){return toISO(d);});
 var name=localStorage.getItem("wc_name")||"";
 var att={};try{att=JSON.parse(localStorage.getItem("wc_attendance")||"{}");}catch(e){}
+Object.keys(att).forEach(function(k){if(shownDates.indexOf(k)===-1){delete att[k];}});
+localStorage.setItem("wc_attendance",JSON.stringify(att));
 var nameInput=document.getElementById("nameInput");
 var nameArea=document.getElementById("nameArea");
 var savedArea=document.getElementById("savedArea");
@@ -53,8 +57,9 @@ saveBtn.onclick=function(){
   var n=(localStorage.getItem("wc_name")||nameInput.value||"").trim();
   if(!n){alert("Please enter your name e.g. D Collier");nameInput.focus();return;}
   localStorage.setItem("wc_name",n);name=n;renderName();
-  var payload={name:n,attendance:att,timestamp:new Date().toISOString()};
-  try{var raw=localStorage.getItem("wc_all_submissions");var all=raw?JSON.parse(raw):[];if(!Array.isArray(all))all=[];var idx=all.findIndex(function(s){return s.name.toLowerCase()===n.toLowerCase();});if(idx>=0)all[idx]=payload;else all.push(payload);localStorage.setItem("wc_all_submissions",JSON.stringify(all));}catch(e){}
+  var toSend={};
+  shownDates.forEach(function(iso){if(att[iso]){toSend[iso]=att[iso];}});
+  var payload={name:n,attendance:toSend,timestamp:new Date().toISOString()};
   saveBtn.disabled=true;
   saveBtn.textContent="Saving...";
   fetch(GOOGLE_SHEET_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(payload)})
