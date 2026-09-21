@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCAG Calendar</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f3ed;
+    color: #333;
+}
+
+.header {
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.calendar {
+    padding: 15px;
+    max-width: 700px;
+    margin: auto;
+}
+
+.session {
+    background: white;
+    margin-bottom: 15px;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    border-left: 12px solid #ccc;
+}
+
+.session.green {
+    border-left-color: #4caf50;
+}
+
+.session.yellow {
+    border-left-color: #f4c542;
+}
+
+.session.red {
+    border-left-color: #e53935;
+}
+
+.session.tappable {
+    cursor: pointer;
+}
+
+.date {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.time {
+    font-size: 18px;
+    margin-top: 6px;
+}
+
+.notes {
+    margin-top: 8px;
+    font-size: 17px;
+}
+
+.key {
+    background: white;
+    margin: 20px 15px;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.key-title {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.key div {
+    margin: 7px 0;
+}
+
+.dot {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.green-dot {
+    background: #4caf50;
+}
+
+.yellow-dot {
+    background: #f4c542;
+}
+
+.red-dot {
+    background: #e53935;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    font-size: 18px;
+}
+
+/* ---------- Admin-only parts ---------- */
+
+.admin-hint {
+    display: none;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 15px;
+    text-align: center;
+    font-size: 17px;
+    color: #555;
+}
+
+.add-wrap {
+    display: none;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 15px 40px;
+    text-align: center;
+}
+
+.add-button {
+    background: #1e5fa8;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 16px 28px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-button:disabled {
+    background: #9bb5d1;
+}
+
+/* ---------- Colour picker box ---------- */
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay.show {
+    display: flex;
+}
+
+.picker {
+    background: white;
+    width: 85%;
+    max-width: 380px;
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+}
+
+.picker-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.choice {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.choice.green { background: #4caf50; color: white; }
+.choice.yellow { background: #f4c542; color: #333; }
+.choice.red { background: #e53935; color: white; }
+
+.cancel {
+    background: none;
+    border: none;
+    font-size: 17px;
+    color: #555;
+    padding: 10px;
+    cursor: pointer;
+}
+
+/* ---------- Small message at the bottom ---------- */
+
+.message {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 25px;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 22px;
+    font-size: 17px;
+    z-index: 20;
+    max-width: 85%;
+    text-align: center;
+}
+
+.message.error {
+    background: #e53935;
+}
+</style>
+</head>
+
+<body>
+<a class="back-link" href="members.html" style="display: inline-block; margin-bottom: 15px; color: #333; text-decoration: none; font-size: 16px;">&larr; Back</a>
+<div class="header">
+    BCAG Calendar
+</div>
+
+<div class="key">
+    <div class="key-title">Key</div>
+
+    <div>
+        <span class="dot green-dot"></span>
+        Session on – Dan present
+    </div>
+
+    <div>
+        <span class="dot yellow-dot"></span>
+        Session on – Dan absent
+    </div>
+
+    <div>
+        <span class="dot red-dot"></span>
+        Session off
+    </div>
+</div>
+
+<div id="adminHint" class="admin-hint">Admin: tap a date to change its colour.</div>
+
+<div id="calendar" class="calendar">
+    <div class="loading">Loading calendar...</div>
+</div>
+
+<div id="addWrap" class="add-wrap">
+    <button id="addButton" class="add-button" onclick="addWeeks()">+ Add 4 more Wednesdays</button>
+</div>
+
+<div id="overlay" class="overlay">
+    <div class="picker">
+        <div id="pickerTitle" class="picker-title"></div>
+        <button class="choice green" onclick="chooseStatus('Green')">Green – Dan present</button>
+        <button class="choice yellow" onclick="chooseStatus('Yellow')">Yellow – Dan absent</button>
+        <button class="choice red" onclick="chooseStatus('Red')">Red – Session off</button>
+        <button class="cancel" onclick="closePicker()">Cancel</button>
+    </div>
+</div>
+
+<div id="message" class="message"></div>
+
+<script>
+
+// The link to the "BCAG Calendar Admin" script
+const CALENDAR_URL = "https://script.google.com/macros/s/AKfycbwBbfBhfDW2Oz1rRfhJZjvo1XtfG-r_u6C_R9ncaRh_to-kALGQPvV1rlWVZB1l29N-eg/exec";
+
+const CACHE_KEY = "bcagCalendarCache";
+
+let isAdmin = false;
+try {
+    isAdmin = localStorage.getItem("bcagRole") === "admin";
+} catch (e) {}
+
+let sessions = [];
+let pickedSession = null;
+let messageTimer = null;
+
+// Only the admin sees the hint and the add button
+if (isAdmin) {
+    document.getElementById("adminHint").style.display = "block";
+    document.getElementById("addWrap").style.display = "block";
+}
+
+// ---------- Small message at the bottom ----------
+
+function showMessage(text, isError) {
+    const box = document.getElementById("message");
+    box.textContent = text;
+    box.className = "message" + (isError ? " error" : "");
+    box.style.display = "block";
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(function () {
+        box.style.display = "none";
+    }, 3000);
+}
+
+// ---------- Drawing the calendar ----------
+
+function drawCalendar() {
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
+
+    sessions.forEach(function (session) {
+
+        const card = document.createElement("div");
+        const status = String(session.status).toLowerCase();
+
+        card.className = "session " + status + (isAdmin ? " tappable" : "");
+
+        const dateDiv = document.createElement("div");
+        dateDiv.className = "date";
+        dateDiv.textContent = session.date;
+
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "time";
+        timeDiv.textContent = session.time;
+
+        const notesDiv = document.createElement("div");
+        notesDiv.className = "notes";
+        notesDiv.textContent = session.notes;
+
+        card.appendChild(dateDiv);
+        card.appendChild(timeDiv);
+        card.appendChild(notesDiv);
+
+        if (isAdmin) {
+            card.addEventListener("click", function () {
+                openPicker(session);
+            });
+        }
+
+        calendar.appendChild(card);
+    });
+}
+
+function loadCalendar() {
+    fetch(CALENDAR_URL + "?action=list")
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            sessions = data;
+            drawCalendar();
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch (e) {}
+        })
+        .catch(function (error) {
+            console.error(error);
+            // Only show the sorry message if nothing is on screen yet
+            if (sessions.length === 0) {
+                document.getElementById("calendar").innerHTML =
+                    "<div class='loading'>Sorry, the calendar could not be loaded.</div>";
+            }
+        });
+}
+
+// Show the last saved copy straight away, then refresh it
+try {
+    const saved = localStorage.getItem(CACHE_KEY);
+    if (saved) {
+        sessions = JSON.parse(saved);
+        drawCalendar();
+    }
+} catch (e) {}
+
+loadCalendar();
+
+// ---------- Changing a colour (admin) ----------
+
+function openPicker(session) {
+    pickedSession = session;
+    document.getElementById("pickerTitle").textContent = session.date;
+    document.getElementById("overlay").classList.add("show");
+}
+
+function closePicker() {
+    document.getElementById("overlay").classList.remove("show");
+}
+
+function chooseStatus(status) {
+    const session = pickedSession;
+    closePicker();
+
+    if (!session) { return; }
+
+    showMessage("Saving...");
+
+    fetch(CALENDAR_URL + "?action=setStatus&date=" + encodeURIComponent(session.date) + "&status=" + status)
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+            if (result.ok) {
+                session.status = status;
+                drawCalendar();
+                try {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(sessions));
+                } catch (e) {}
+                showMessage("Saved");
+            } else {
+                showMessage("Could not save. Please try again.", true);
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            showMessage("Could not save. Please try again.", true);
+        });
+}
+
+// ---------- Adding more Wednesdays (admin) ----------
+
+function addWeeks() {
+    if (!confirm("Add the next 4 Wednesdays to the calendar?")) { return; }
+
+    const button = document.getElementById("addButton");
+    button.disabled = true;
+    showMessage("Adding...");
+
+    fetch(CALENDAR_URL + "?action=addWeeks&count=4")
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+            button.disabled = false;
+            if (result.ok) {
+                showMessage("4 Wednesdays added");
+                loadCalendar();
+            } else {
+                showMessage("Could not add. Please try again.", true);
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            button.disabled = false;
+            showMessage("Could not add. Please try again.", true);
+        });
+}
+
+</script>
+
+</body>
+</html>
