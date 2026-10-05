@@ -298,7 +298,7 @@ function render() {
     var badge = s === 'numbered' ? '<span class="badge">' + item.number + '</span>'
               : s === 'left' ? '<span class="badge out">Left out</span>'
               : '<span class="badge none">?</span>';
-    d.innerHTML = '<img loading="lazy" src="' + item.thumb + '" alt="">' + badge;
+    d.innerHTML = '<img loading="lazy" src="' + item.thumb.replace('sz=w400','sz=w200') + '" alt="">' + badge;
     d.onclick = function () { openSheet(item); };
     $('grid').appendChild(d);
   });
