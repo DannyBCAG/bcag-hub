@@ -31,11 +31,11 @@ function shrink(file){
     var img=new Image();
     var u=URL.createObjectURL(file);
     img.onload=function(){
-      var m=1800,w=img.width,h=img.height;
+      var m=1400,w=img.width,h=img.height;
       if(w>m||h>m){var r=Math.min(m/w,m/h);w=Math.round(w*r);h=Math.round(h*r);}
       var c=document.createElement('canvas');c.width=w;c.height=h;
       c.getContext('2d').drawImage(img,0,0,w,h);
-      res(c.toDataURL('image/jpeg',0.85).split(',')[1]);
+      res(c.toDataURL('image/jpeg',0.8).split(',')[1]);
       URL.revokeObjectURL(u);
     };
     img.onerror=function(){rej(new Error('Could not read picture'));};
@@ -43,17 +43,22 @@ function shrink(file){
   });
 }
 document.getElementById('files').addEventListener('change',async function(e){
-  var list=e.target.files,msg=document.getElementById('msg'),type=document.getElementById('type').value;
-  var done=0,bad=0;
-  for(var i=0;i<list.length;i++){
-    msg.textContent='Uploading '+(i+1)+' of '+list.length+'...';
-    try{
-      var data=await shrink(list[i]);
-      await fetch(URL_,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({type:type,name:'upload-'+Date.now()+'-'+i+'.jpg',mime:'image/jpeg',data:data})});
-      done++;
-    }catch(err){bad++;}
+  var list=Array.from(e.target.files),msg=document.getElementById('msg'),type=document.getElementById('type').value;
+  var done=0,bad=0,next=0;
+  async function worker(){
+    while(next<list.length){
+      var i=next++;
+      try{
+        var data=await shrink(list[i]);
+        await fetch(URL_,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+          body:JSON.stringify({type:type,name:'upload-'+Date.now()+'-'+i+'.jpg',mime:'image/jpeg',data:data})});
+        done++;
+      }catch(err){bad++;}
+      msg.textContent='Uploaded '+done+' of '+list.length+'...';
+    }
   }
+  msg.textContent='Uploading '+list.length+'...';
+  await Promise.all([worker(),worker(),worker()]);
   msg.textContent='Done: '+done+' sent'+(bad?', '+bad+' failed':'')+'. Now number them in "Number the pictures".';
   e.target.value='';
 });
