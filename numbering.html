@@ -187,11 +187,23 @@ var current = null;
 
 function $(id) { return document.getElementById(id); }
 
-function api(params) {
+function api(params, tries) {
+  tries = tries || 0;
   var qs = Object.keys(params).map(function (k) {
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
   }).join('&');
-  return fetch(SCRIPT_URL + '?' + qs).then(function (r) { return r.json(); });
+  return fetch(SCRIPT_URL + '?' + qs)
+    .then(function (r) { return r.text(); })
+    .then(function (t) {
+      try { return JSON.parse(t); }
+      catch (e) {
+        if (tries < 2) {
+          return new Promise(function (ok) { setTimeout(ok, 1500); })
+            .then(function () { return api(params, tries + 1); });
+        }
+        throw new Error('Google was busy. Please try again.');
+      }
+    });
 }
 
 function toast(text) {
