@@ -127,7 +127,7 @@ fetch(PAINTINGS_URL).then(function (r) { return r.json(); }).then(function (d) {
   var html = '';
   d.paintings.forEach(function (p) {
     html += '<div class="card" onclick="openViewer(\'' + p.thumb + '\',' + p.number + ')">' +
-            '<img src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
+            '<img loading="lazy" referrerpolicy="no-referrer" src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
   });
   document.getElementById('grid').innerHTML = html;
 });
