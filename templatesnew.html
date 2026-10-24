@@ -50,7 +50,7 @@ fetch(URL).then(function (r) { return r.json(); }).then(function (d) {
   var html = '';
   d.templates.forEach(function (p) {
     html += '<div class="card" onclick="openViewer(\'' + p.thumb + '\',' + p.number + ')">' +
-            '<img src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
+            '<img loading="lazy" referrerpolicy="no-referrer" onerror="var s=this;if(!s.n){s.n=1;setTimeout(function(){s.src=s.src.replace(/w400/,/w401/.source)},500+Math.random()*4000)}" src="' + p.thumb + '"><div class="num">' + p.number + '</div></div>';
   });
   document.getElementById('grid').innerHTML = html;
 });
