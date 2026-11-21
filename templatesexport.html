@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Export templates</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  body { font-family: sans-serif; background: #ece6f5; margin: 0; padding: 12px; }
+  .back { color: #1a4b8c; font-weight: bold; text-decoration: none; }
+  h2 { text-align: center; color: #1a4b8c; }
+  button { background: #1a4b8c; color: #fff; border: 0; border-radius: 20px; padding: 12px 24px; font-size: 16px; display: block; margin: 12px auto; }
+  #log { background: #fff; border-radius: 10px; padding: 10px; font-size: 14px; white-space: pre-wrap; }
+  #dl { display: none; text-align: center; font-size: 20px; font-weight: bold; margin: 16px; color: #1a4b8c; }
+</style>
+</head>
+<body>
+<a class="back" href="admin.html">&larr; Back</a>
+<h2>Export templates</h2>
+<button id="go" onclick="start()">Make zip of mirrored templates</button>
+<a id="dl" download="templates-to-print.zip">Download the zip</a>
+<div id="log">Ready.</div>
+
+<script>
+if (localStorage.getItem('bcagRole') !== 'admin') {
+  window.location.href = 'members.html';
+}
+
+var LIMIT = 5; // 5 = test with the first 5 templates. Change to 0 for all.
+var LISTURL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=templates';
+
+function log(t) { document.getElementById('log').textContent += '\n' + t; }
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+function loadImage(src) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.referrerPolicy = 'no-referrer';
+    img.onload = function () { resolve(img); };
+    img.onerror = function () { reject(new Error('picture blocked or failed to load')); };
+    img.src = src;
+  });
+}
+
+function mirrorToJpeg(img) {
+  return new Promise(function (resolve, reject) {
+    var c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    var x = c.getContext('2d');
+    x.fillStyle = '#fff';
+    x.fillRect(0, 0, c.width, c.height);
+    x.translate(c.width, 0);
+    x.scale(-1, 1);
+    x.drawImage(img, 0, 0);
+    try {
+      c.toBlob(function (b) {
+        if (b) { resolve(b); } else { reject(new Error('could not make jpeg')); }
+      }, 'image/jpeg', 0.92);
+    } catch (e) { reject(e); }
+  });
+}
+
+async function start() {
+  document.getElementById('go').disabled = true;
+  document.getElementById('dl').style.display = 'none';
+  document.getElementById('log').textContent = 'Getting the list...';
+  try {
+    var d = await (await fetch(LISTURL)).json();
+    var list = d.templates;
+    if (LIMIT > 0) { list = list.slice(0, LIMIT); }
+    var zip = new JSZip();
+    var done = 0;
+    var failed = [];
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      var src = p.thumb.replace('sz=w400', 'sz=w1600');
+      var ok = false;
+      for (var tries = 0; tries < 3 && !ok; tries++) {
+        try {
+          var img = await loadImage(src + (tries ? '&r=' + tries : ''));
+          var blob = await mirrorToJpeg(img);
+          zip.file(p.number + '.jpg', blob);
+          ok = true;
+          done++;
+        } catch (e) {
+          await wait(1500);
+        }
+      }
+      if (!ok) { failed.push(p.number); }
+      log('Template ' + p.number + (ok ? ' done' : ' FAILED'));
+      await wait(300);
+    }
+    if (done === 0) {
+      log('Nothing could be saved. The browser is blocking the pictures.');
+    } else {
+      var out = await zip.generateAsync({ type: 'blob' });
+      var a = document.getElementById('dl');
+      a.href = URL.createObjectURL(out);
+      a.style.display = 'block';
+      log('Finished: ' + done + ' saved' + (failed.length ? ', failed: ' + failed.join(', ') : '') + '. Tap Download the zip.');
+    }
+  } catch (e) {
+    log('Error: ' + e.message);
+  }
+  document.getElementById('go').disabled = false;
+}
+</script>
+</body>
+</html>
