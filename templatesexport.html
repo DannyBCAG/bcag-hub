@@ -27,6 +27,7 @@ if (localStorage.getItem('bcagRole') !== 'admin') {
 
 var LIMIT = 5; // 5 = test with the first 5 templates. Change to 0 for all.
 var LISTURL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=templates';
+var EXPORTURL = 'https://script.google.com/macros/s/AKfycbzc6bqoG6bampLTCFyWfV3n2f1tytV5WJ7aQ8MhlPOJGHGJwBRwUFt8QLmCssRkdLLq/exec';
 
 function log(t) { document.getElementById('log').textContent += '\n' + t; }
 function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -34,10 +35,8 @@ function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 function loadImage(src) {
   return new Promise(function (resolve, reject) {
     var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.referrerPolicy = 'no-referrer';
     img.onload = function () { resolve(img); };
-    img.onerror = function () { reject(new Error('picture blocked or failed to load')); };
+    img.onerror = function () { reject(new Error('picture failed to load')); };
     img.src = src;
   });
 }
@@ -74,25 +73,28 @@ async function start() {
     var failed = [];
     for (var i = 0; i < list.length; i++) {
       var p = list[i];
-      var src = p.thumb.replace('sz=w400', 'sz=w1600');
+      var fileId = p.thumb.match(/id=([^&]+)/)[1];
       var ok = false;
+      var why = '';
       for (var tries = 0; tries < 3 && !ok; tries++) {
         try {
-          var img = await loadImage(src + (tries ? '&r=' + tries : ''));
+          var r = await (await fetch(EXPORTURL + '?id=' + fileId)).json();
+          if (r.error) { throw new Error(r.error); }
+          var img = await loadImage('data:' + r.mime + ';base64,' + r.data);
           var blob = await mirrorToJpeg(img);
           zip.file(p.number + '.jpg', blob);
           ok = true;
           done++;
         } catch (e) {
+          why = e.message;
           await wait(1500);
         }
       }
       if (!ok) { failed.push(p.number); }
-      log('Template ' + p.number + (ok ? ' done' : ' FAILED'));
-      await wait(300);
+      log('Template ' + p.number + (ok ? ' done' : ' FAILED (' + why + ')'));
     }
     if (done === 0) {
-      log('Nothing could be saved. The browser is blocking the pictures.');
+      log('Nothing could be saved.');
     } else {
       var out = await zip.generateAsync({ type: 'blob' });
       var a = document.getElementById('dl');
