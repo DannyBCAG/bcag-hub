@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request Log</title>
+<style>
+  :root { --blue:#2f5fa7; --violet:#f1ecf8; --ink:#1f2a3a; --grey:#6b7686; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0 0 40px; background:var(--violet); color:var(--ink);
+    font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:20px; }
+  .bar { background:var(--blue); color:#fff; padding:14px 16px; border-radius:0 0 22px 22px;
+    display:flex; align-items:center; gap:14px; }
+  .bar a { color:#fff; text-decoration:none; }
+  .bar h1 { margin:0; font-size:22px; font-weight:600; }
+  .wrap { padding:14px; max-width:900px; margin:0 auto; }
+  #search { width:100%; padding:14px; font-size:20px; border-radius:12px;
+    border:2px solid var(--blue); margin-bottom:6px; }
+  .count { color:var(--grey); font-size:16px; margin:6px 2px 12px; }
+  .week { background:#fff; border-radius:16px; padding:14px 16px; margin-bottom:14px; }
+  .week h2 { margin:0 0 8px; font-size:20px; color:var(--blue); }
+  .row { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid #e6e1ef; }
+  .row:first-of-type { border-top:0; }
+  .num { background:var(--blue); color:#fff; font-weight:700; min-width:58px; padding:6px 10px;
+    border-radius:999px; text-align:center; font-size:20px; }
+  .who { flex:1; }
+  .when { color:var(--grey); font-size:16px; white-space:nowrap; }
+  .empty { padding:30px 10px; text-align:center; color:var(--grey); }
+  .box { background:#fff; border-radius:16px; padding:18px; margin:20px auto; max-width:420px; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a href="admin.html">&larr; Back</a>
+  <h1>Request Log</h1>
+</div>
+
+<div class="wrap">
+  <div id="notAdmin" class="box" hidden>
+    <p>This page is for the admin only. Please log in as admin from the start page.</p>
+    <a href="index.html">Go to login</a>
+  </div>
+
+  <div id="main" hidden>
+    <input id="search" type="search" placeholder="Search by name or template number" autocomplete="off">
+    <div class="count" id="count"></div>
+    <div id="list"></div>
+  </div>
+
+  <div id="loading" class="empty">Loading the log&hellip;</div>
+</div>
+
+<script>
+var LOG_URL = 'https://script.google.com/macros/s/AKfycbxwkGMuEaEAXL1TwVECnuf3MXMWSwiaCCWuyi69t1MFVU4ijjBEV7DTAiJuZ6HhaFjKhA/exec?action=log';
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var items = [];
+
+function $(id) { return document.getElementById(id); }
+
+if (localStorage.getItem('bcagRole') !== 'admin') {
+  $('loading').hidden = true;
+  $('notAdmin').hidden = false;
+} else {
+  load(0);
+}
+
+function load(tries) {
+  fetch(LOG_URL).then(function (r) { return r.text(); }).then(function (t) {
+    var d;
+    try { d = JSON.parse(t); } catch (e) {
+      if (tries < 2) { setTimeout(function () { load(tries + 1); }, 1500); return; }
+      $('loading').textContent = 'Google was busy. Please refresh the page.';
+      return;
+    }
+    items = (d.log || []).map(function (i) {
+      var m = String(i.date).match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+      i.when = m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : new Date(0);
+      return i;
+    });
+    items.sort(function (a, b) { return b.when - a.when; });
+    $('loading').hidden = true;
+    $('main').hidden = false;
+    render();
+  }).catch(function () {
+    $('loading').textContent = 'Could not load. Check your internet and refresh the page.';
+  });
+}
+
+function weekStart(d) {
+  var s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  s.setDate(s.getDate() - ((s.getDay() + 6) % 7));
+  return s;
+}
+
+function render() {
+  var q = $('search').value.trim().toLowerCase();
+  var shown = items.filter(function (i) {
+    if (!q) return true;
+    return i.name.toLowerCase().indexOf(q) !== -1 || String(i.number).indexOf(q) !== -1;
+  });
+  $('count').textContent = shown.length + ' of ' + items.length + ' requests';
+  var list = $('list');
+  list.innerHTML = '';
+  if (!shown.length) {
+    list.innerHTML = '<div class="empty">Nothing found.</div>';
+    return;
+  }
+  var weeks = [];
+  var byKey = {};
+  shown.forEach(function (i) {
+    var ws = weekStart(i.when);
+    var key = ws.getTime();
+    if (!byKey[key]) { byKey[key] = { start: ws, rows: [] }; weeks.push(byKey[key]); }
+    byKey[key].rows.push(i);
+  });
+  weeks.sort(function (a, b) { return b.start - a.start; });
+  weeks.forEach(function (w) {
+    var card = document.createElement('div');
+    card.className = 'week';
+    var h = document.createElement('h2');
+    h.textContent = 'Week beginning ' + w.start.getDate() + ' ' + MONTHS[w.start.getMonth()] + ' ' + w.start.getFullYear();
+    card.appendChild(h);
+    w.rows.forEach(function (i) {
+      var row = document.createElement('div');
+      row.className = 'row';
+      var n = document.createElement('div');
+      n.className = 'num';
+      n.textContent = i.number;
+      var who = document.createElement('div');
+      who.className = 'who';
+      who.textContent = i.name;
+      var when = document.createElement('div');
+      when.className = 'when';
+      when.textContent = DAYS[i.when.getDay()] + ' ' + i.when.getDate() + ' ' + MONTHS[i.when.getMonth()].substring(0, 3);
+      row.appendChild(n);
+      row.appendChild(who);
+      row.appendChild(when);
+      card.appendChild(row);
+    });
+    list.appendChild(card);
+  });
+}
+
+$('search').oninput = render;
+</script>
+</body>
+</html>
