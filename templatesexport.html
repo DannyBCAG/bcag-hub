@@ -87,14 +87,17 @@ function mirrorToJpeg(img, number) {
       if (best.ink < LIMITINK) { pick = best; }
     }
 
-    // black circle, white number
+    // outline circle, black number
     var cx = pick.left + box / 2;
     var cy = pick.top + box / 2;
-    x.fillStyle = '#000';
+    x.fillStyle = '#fff';
     x.beginPath();
     x.arc(cx, cy, s / 2, 0, Math.PI * 2);
     x.fill();
-    x.fillStyle = '#fff';
+    x.lineWidth = Math.max(2, Math.round(s * 0.05));
+    x.strokeStyle = '#000';
+    x.stroke();
+    x.fillStyle = '#000';
     x.font = 'bold ' + Math.round(s * 0.42) + 'px sans-serif';
     x.textAlign = 'center';
     x.textBaseline = 'middle';
