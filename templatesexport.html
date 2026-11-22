@@ -9,15 +9,35 @@
   .back { color: #1a4b8c; font-weight: bold; text-decoration: none; }
   h2 { text-align: center; color: #1a4b8c; }
   button { background: #1a4b8c; color: #fff; border: 0; border-radius: 20px; padding: 12px 24px; font-size: 16px; display: block; margin: 12px auto; }
+  button:disabled { opacity: 0.5; }
   #log { background: #fff; border-radius: 10px; padding: 10px; font-size: 14px; white-space: pre-wrap; }
   #dl { display: none; text-align: center; font-size: 20px; font-weight: bold; margin: 16px; color: #1a4b8c; }
+  .box { background: #fff; border-radius: 14px; padding: 12px; margin: 14px 0; text-align: center; }
+  .box h3 { margin: 4px 0 8px; color: #1a4b8c; font-size: 17px; }
+  .box input { width: 90px; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; text-align: center; }
+  .small { font-size: 13px; color: #555; margin: 4px 0; }
 </style>
 </head>
 <body>
 <a class="back" href="admin.html">&larr; Back</a>
 <h2>Export templates</h2>
-<button id="go" onclick="start()">Make zip of mirrored templates</button>
-<a id="dl" download="templates-to-print.zip">Download the zip</a>
+
+<div class="box">
+  <h3>Save to Drive (Master Templates)</h3>
+  <p class="small">Mirrored, numbered, saved straight into your Master Templates folder.</p>
+  <button onclick="saveToDrive('new')">Add new ones only</button>
+  <p class="small">Or choose numbers (replaces those if already there):</p>
+  From <input id="from" type="number" inputmode="numeric"> To <input id="to" type="number" inputmode="numeric">
+  <button onclick="saveToDrive('range')">Save this range</button>
+  <button onclick="saveToDrive('all')" style="background:#777;">Redo ALL</button>
+</div>
+
+<div class="box">
+  <h3>Or download a zip</h3>
+  <button id="go" onclick="start()">Make zip of mirrored templates</button>
+  <a id="dl" download="templates-to-print.zip">Download the zip</a>
+</div>
+
 <div id="log">Ready.</div>
 
 <script>
@@ -109,6 +129,89 @@ function mirrorToJpeg(img, number) {
       }, 'image/jpeg', 0.92);
     } catch (e) { reject(e); }
   });
+}
+
+function blobToBase64(blob) {
+  return new Promise(function (resolve, reject) {
+    var fr = new FileReader();
+    fr.onload = function () { resolve(String(fr.result).split(',')[1]); };
+    fr.onerror = function () { reject(new Error('could not read picture')); };
+    fr.readAsDataURL(blob);
+  });
+}
+
+function setButtons(off) {
+  var b = document.querySelectorAll('button');
+  for (var i = 0; i < b.length; i++) { b[i].disabled = off; }
+}
+
+async function saveToDrive(mode) {
+  var from = parseInt(document.getElementById('from').value, 10);
+  var to = parseInt(document.getElementById('to').value, 10);
+  if (mode === 'range' && (isNaN(from) || isNaN(to) || from > to)) {
+    alert('Type a From number and a To number, e.g. 220 and 240.');
+    return;
+  }
+  if (mode === 'all' && !confirm('This replaces EVERY template already in Master Templates. Continue?')) {
+    return;
+  }
+  setButtons(true);
+  document.getElementById('log').textContent = 'Getting the list...';
+  try {
+    var d = await (await fetch(LISTURL)).json();
+    var list = d.templates;
+    if (mode === 'new') {
+      var ex = await (await fetch(EXPORTURL + '?action=list')).json();
+      if (ex.error) { throw new Error(ex.error); }
+      var have = {};
+      ex.files.forEach(function (n) { have[n] = true; });
+      list = list.filter(function (t) { return !have[t.number + '.jpg']; });
+    } else if (mode === 'range') {
+      list = list.filter(function (t) { var n = parseInt(t.number, 10); return n >= from && n <= to; });
+    }
+    if (list.length === 0) {
+      log('Nothing to do - no matching templates.');
+      setButtons(false);
+      return;
+    }
+    log(list.length + ' to save.');
+    var done = 0;
+    var failed = [];
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      var fileId = p.thumb.match(/id=([^&]+)/)[1];
+      var ok = false;
+      var why = '';
+      var corner = '';
+      for (var tries = 0; tries < 3 && !ok; tries++) {
+        try {
+          var r = await (await fetch(EXPORTURL + '?id=' + fileId)).json();
+          if (r.error) { throw new Error(r.error); }
+          var img = await loadImage('data:' + r.mime + ';base64,' + r.data);
+          var res = await mirrorToJpeg(img, p.number);
+          var b64 = await blobToBase64(res.blob);
+          var pr = await (await fetch(EXPORTURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ name: p.number + '.jpg', data: b64 })
+          })).json();
+          if (pr.error) { throw new Error(pr.error); }
+          corner = res.corner;
+          ok = true;
+          done++;
+        } catch (e) {
+          why = e.message;
+          await wait(1500);
+        }
+      }
+      if (!ok) { failed.push(p.number); }
+      log('Template ' + p.number + (ok ? ' saved to Drive (circle: ' + corner + ')' : ' FAILED (' + why + ')'));
+    }
+    log('Finished: ' + done + ' saved' + (failed.length ? ', failed: ' + failed.join(', ') : '') + '.');
+  } catch (e) {
+    log('Error: ' + e.message);
+  }
+  setButtons(false);
 }
 
 async function start() {
