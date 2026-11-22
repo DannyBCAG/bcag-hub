@@ -25,7 +25,7 @@ if (localStorage.getItem('bcagRole') !== 'admin') {
   window.location.href = 'members.html';
 }
 
-var LIMIT = 0; // 5 = test with the first 5 templates. Change to 0 for all.
+var LIMIT = 5; // 5 = test with the first 5 templates. Change to 0 for all.
 var LISTURL = 'https://script.google.com/macros/s/AKfycbzmrocbRQlGP3AcWtNsLItH3LDQnqWJZ2MSeac1CgM4TJRdUNvjJERAoY9rol9urV7e/exec?type=templates';
 var EXPORTURL = 'https://script.google.com/macros/s/AKfycbzc6bqoG6bampLTCFyWfV3n2f1tytV5WJ7aQ8MhlPOJGHGJwBRwUFt8QLmCssRkdLLq/exec';
 
@@ -41,20 +41,68 @@ function loadImage(src) {
   });
 }
 
-function mirrorToJpeg(img) {
+// how much dark line work is in a square (0 = empty, 1 = full)
+function inkIn(x, left, top, size) {
+  var d = x.getImageData(left, top, size, size).data;
+  var ink = 0;
+  for (var i = 0; i < d.length; i += 4) {
+    if (d[i] + d[i + 1] + d[i + 2] < 600) { ink++; }
+  }
+  return ink / (size * size);
+}
+
+function mirrorToJpeg(img, number) {
   return new Promise(function (resolve, reject) {
     var c = document.createElement('canvas');
-    c.width = img.naturalWidth;
-    c.height = img.naturalHeight;
+    var w = c.width = img.naturalWidth;
+    var h = c.height = img.naturalHeight;
     var x = c.getContext('2d');
     x.fillStyle = '#fff';
-    x.fillRect(0, 0, c.width, c.height);
-    x.translate(c.width, 0);
+    x.fillRect(0, 0, w, h);
+    x.translate(w, 0);
     x.scale(-1, 1);
     x.drawImage(img, 0, 0);
+    x.setTransform(1, 0, 0, 1, 0, 0);
+
+    // circle size and the square we check in each corner
+    var s = Math.round(Math.min(w, h) * 0.09);
+    var m = Math.round(Math.min(w, h) * 0.02);
+    var box = s + 2 * m;
+    var corners = [
+      { name: 'bottom-right', left: w - box, top: h - box },
+      { name: 'bottom-left', left: 0, top: h - box },
+      { name: 'top-right', left: w - box, top: 0 },
+      { name: 'top-left', left: 0, top: 0 }
+    ];
+    var LIMITINK = 0.01;
+    var pick = corners[0];
+    for (var k = 0; k < corners.length; k++) {
+      corners[k].ink = inkIn(x, corners[k].left, corners[k].top, box);
+    }
+    if (corners[0].ink >= LIMITINK) {
+      var best = null;
+      for (var j = 1; j < corners.length; j++) {
+        if (best === null || corners[j].ink < best.ink) { best = corners[j]; }
+      }
+      if (best.ink < LIMITINK) { pick = best; }
+    }
+
+    // black circle, white number
+    var cx = pick.left + box / 2;
+    var cy = pick.top + box / 2;
+    x.fillStyle = '#000';
+    x.beginPath();
+    x.arc(cx, cy, s / 2, 0, Math.PI * 2);
+    x.fill();
+    x.fillStyle = '#fff';
+    x.font = 'bold ' + Math.round(s * 0.42) + 'px sans-serif';
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.fillText(String(number), cx, cy);
+
     try {
       c.toBlob(function (b) {
-        if (b) { resolve(b); } else { reject(new Error('could not make jpeg')); }
+        if (b) { resolve({ blob: b, corner: pick.name }); } else { reject(new Error('could not make jpeg')); }
       }, 'image/jpeg', 0.92);
     } catch (e) { reject(e); }
   });
@@ -76,13 +124,15 @@ async function start() {
       var fileId = p.thumb.match(/id=([^&]+)/)[1];
       var ok = false;
       var why = '';
+      var corner = '';
       for (var tries = 0; tries < 3 && !ok; tries++) {
         try {
           var r = await (await fetch(EXPORTURL + '?id=' + fileId)).json();
           if (r.error) { throw new Error(r.error); }
           var img = await loadImage('data:' + r.mime + ';base64,' + r.data);
-          var blob = await mirrorToJpeg(img);
-          zip.file(p.number + '.jpg', blob);
+          var res = await mirrorToJpeg(img, p.number);
+          zip.file(p.number + '.jpg', res.blob);
+          corner = res.corner;
           ok = true;
           done++;
         } catch (e) {
@@ -91,7 +141,7 @@ async function start() {
         }
       }
       if (!ok) { failed.push(p.number); }
-      log('Template ' + p.number + (ok ? ' done' : ' FAILED (' + why + ')'));
+      log('Template ' + p.number + (ok ? ' done (circle: ' + corner + ')' : ' FAILED (' + why + ')'));
     }
     if (done === 0) {
       log('Nothing could be saved.');
