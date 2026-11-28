@@ -308,17 +308,89 @@ function fail(e) {
   $('err').textContent = (e && e.message) ? e.message : 'Something went wrong. Please try again.';
 }
 
+var EXPORT_URL = 'https://script.google.com/macros/s/AKfycbzc6bqoG6bampLTCFyWfV3n2f1tytV5WJ7aQ8MhlPOJGHGJwBRwUFt8QLmCssRkdLLq/exec';
+
+function loadImg(src) {
+  return new Promise(function (ok, no) {
+    var i = new Image();
+    i.onload = function () { ok(i); };
+    i.onerror = function () { no(new Error('picture failed to load')); };
+    i.src = src;
+  });
+}
+function inkIn(x, left, top, size) {
+  var d = x.getImageData(left, top, size, size).data, ink = 0;
+  for (var i = 0; i < d.length; i += 4) { if (d[i] + d[i + 1] + d[i + 2] < 600) ink++; }
+  return ink / (size * size);
+}
+function mirrorNumber(img, number) {
+  return new Promise(function (ok, no) {
+    var c = document.createElement('canvas');
+    var w = c.width = img.naturalWidth, h = c.height = img.naturalHeight;
+    var x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+    x.translate(w, 0); x.scale(-1, 1); x.drawImage(img, 0, 0);
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    var s = Math.round(Math.min(w, h) * 0.09), m = Math.round(Math.min(w, h) * 0.02), box = s + 2 * m;
+    var corners = [
+      { left: w - box, top: h - box }, { left: 0, top: h - box },
+      { left: w - box, top: 0 }, { left: 0, top: 0 }
+    ];
+    corners.forEach(function (k) { k.ink = inkIn(x, k.left, k.top, box); });
+    var pick = corners[0];
+    if (pick.ink >= 0.01) {
+      var best = null;
+      for (var j = 1; j < 4; j++) { if (!best || corners[j].ink < best.ink) best = corners[j]; }
+      if (best.ink < 0.01) pick = best;
+    }
+    var cx = pick.left + box / 2, cy = pick.top + box / 2;
+    x.fillStyle = '#fff'; x.beginPath(); x.arc(cx, cy, s / 2, 0, Math.PI * 2); x.fill();
+    x.lineWidth = Math.max(2, Math.round(s * 0.05)); x.strokeStyle = '#000'; x.stroke();
+    x.fillStyle = '#000'; x.font = 'bold ' + Math.round(s * 0.42) + 'px sans-serif';
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(number), cx, cy);
+    c.toBlob(function (b) { b ? ok(b) : no(new Error('could not make jpeg')); }, 'image/jpeg', 0.92);
+  });
+}
+function blobToB64(blob) {
+  return new Promise(function (ok, no) {
+    var fr = new FileReader();
+    fr.onload = function () { ok(String(fr.result).split(',')[1]); };
+    fr.onerror = function () { no(new Error('could not read picture')); };
+    fr.readAsDataURL(blob);
+  });
+}
+function makeMaster(item, n) {
+  var mt = (item.thumb || '').match(/id=([^&]+)/);
+  var fileId = mt ? mt[1] : item.id;
+  return fetch(EXPORT_URL + '?id=' + fileId).then(function (r) { return r.json(); })
+    .then(function (r) {
+      if (r.error) throw new Error(r.error);
+      return loadImg('data:' + r.mime + ';base64,' + r.data);
+    })
+    .then(function (img) { return mirrorNumber(img, n); })
+    .then(blobToB64)
+    .then(function (b64) {
+      return fetch(EXPORT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name: n + '.jpg', data: b64 }) }).then(function (r) { return r.json(); });
+    })
+    .then(function (pr) { if (pr.error) throw new Error(pr.error); });
+}
+
 $('saveBtn').onclick = function () {
   var n = parseInt($('numInput').value, 10);
   if (!n || n < 1) { $('err').textContent = 'Please type a number.'; return; }
+  var item = current, isTemplate = tab === 'templates';
   setBusy(true);
   act({ action: 'setnumber', number: n }).then(function () {
-    current.number = n;
-    current.name = String(n);
-    current.leftOut = false;
-    closeSheet();
-    render();
-    toast('Saved as ' + n);
+    item.number = n; item.name = String(n); item.leftOut = false;
+    if (!isTemplate) { closeSheet(); render(); toast('Saved as ' + n); return; }
+    $('err').textContent = 'Saved. Making the print-ready copy\u2026';
+    return makeMaster(item, n).then(function () {
+      closeSheet(); render(); toast('Saved as ' + n + ' and print copy made');
+    }).catch(function () {
+      setBusy(false);
+      $('err').textContent = 'Number saved, but the print copy failed. Tap Save number again to retry.';
+    });
   }).catch(fail);
 };
 
